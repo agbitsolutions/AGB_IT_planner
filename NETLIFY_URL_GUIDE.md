@@ -4,14 +4,16 @@
 
 You have a Netlify site with ID: **8d715c81-b9d6-4ea6-9c4f-ae1489fe1702**
 
-Site name: **agbitsolutions**
+Site name: **agbitsolutionsplanner**
+
+Owner: **AGB IT Solutions**
 
 ## Why You're Seeing 404
 
-The URL you visited: `https://agbitsolutions.netlify.app/`
+The URL you should visit: `https://agbitsolutionsplanner.netlify.app/`
 
-This is showing 404 because:
-1. The repository hasn't been connected to this Netlify site yet, OR
+It's showing 404 because:
+1. The GitHub repository hasn't been connected to this Netlify site yet, OR
 2. No code has been deployed yet
 
 ## Next Steps to Fix It
@@ -39,8 +41,8 @@ This is showing 404 because:
    - Takes about 2-3 minutes
 
 5. **Access Your Site**
-   - Once deployed, you'll get a unique URL
-   - Or use: https://agbitsolutions.netlify.app/
+   - Once deployed, your site will be live
+   - URL: https://agbitsolutionsplanner.netlify.app/
 
 ### Option 2: Manual Deploy (Quick Test)
 
@@ -86,9 +88,10 @@ You need to deploy backend to a cloud server too (Heroku, Railway, AWS, etc.)
 - [ ] Configure MongoDB Atlas connection
 - [ ] Run `./start.sh` and verify it works
 - [ ] Visit Netlify dashboard: https://app.netlify.com
-- [ ] Connect GitHub repository
+- [ ] Find "agbitsolutionsplanner" site
+- [ ] Connect GitHub repository to this site
 - [ ] Monitor first deployment
-- [ ] Test at https://agbitsolutions.netlify.app/
+- [ ] Test at https://agbitsolutionsplanner.netlify.app/
 
 ## If Deployment Still Fails
 
@@ -100,4 +103,4 @@ Check GitHub Actions:
 
 ---
 
-**TL;DR:** You need to connect your GitHub repo to this Netlify site in the Netlify dashboard.
+**TL;DR:** Connect your GitHub repo to the "agbitsolutionsplanner" site in the Netlify dashboard.
