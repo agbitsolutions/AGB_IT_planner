@@ -1,0 +1,21 @@
+{
+  "build": {
+    "command": "npm install && npm run build",
+    "functions": "netlify/functions",
+    "publish": "frontend"
+  },
+  "env": {
+    "REACT_APP_API_URL": {
+      "description": "Backend API URL",
+      "required": true,
+      "default": "http://localhost:5000"
+    }
+  },
+  "redirects": [
+    {
+      "from": "/*",
+      "to": "/index.html",
+      "status": 200
+    }
+  ]
+}

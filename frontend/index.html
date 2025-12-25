@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AGB Multi-Project Planner</title>
+    <link rel="stylesheet" href="css/styles.css">
+    <!-- Offline Status Indicator -->
+    <style>
+        .offline-banner {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            background: #FFC107;
+            color: #333;
+            padding: 10px;
+            text-align: center;
+            font-weight: bold;
+            z-index: 9999;
+        }
+        .offline-banner.show {
+            display: block;
+        }
+        body.offline {
+            margin-top: 40px;
+        }
+    </style>
+</head>
+<body>
+    <!-- Offline Status Banner -->
+    <div class="offline-banner" id="offlineBanner">
+        ⚠️ You are offline - Showing cached data. Backend will sync when online.
+    </div>
+    <div class="container">
+        <!-- Sidebar -->
+        <aside class="sidebar" id="sidebar">
+            <h2>AGB Planner</h2>
+
+            <!-- Teams Section -->
+            <div class="sidebar-section">
+                <h3>Teams</h3>
+                <ul class="teams-list" id="teamsList"></ul>
+                <button class="add-btn" onclick="showAddTeamModal()">+ New Team</button>
+            </div>
+
+            <!-- Projects Section -->
+            <div class="sidebar-section">
+                <h3>Projects</h3>
+                <ul class="projects-list" id="projectsList"></ul>
+                <button class="add-btn" onclick="showAddProjectModal()">+ New Project</button>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <div class="header">
+                <div>
+                    <h1 id="currentProjectName">Dashboard</h1>
+                </div>
+                <div class="header-actions">
+                    <div class="view-toggle">
+                        <button class="active" onclick="switchView('board')">📊 Board</button>
+                        <button onclick="switchView('timeline')">📈 Timeline</button>
+                    </div>
+                    <button class="btn btn-primary" onclick="showAddProjectModal()">+ New Project</button>
+                </div>
+            </div>
+
+            <!-- Stats -->
+            <div class="stats" id="statsContainer"></div>
+
+            <!-- Kanban Board View -->
+            <div class="view-container active" id="boardView">
+                <div class="kanban-board" id="kanbanBoard"></div>
+            </div>
+
+            <!-- Timeline View -->
+            <div class="view-container" id="timelineView">
+                <div class="timeline-container">
+                    <div class="timeline" id="timelineContainer"></div>
+                </div>
+            </div>
+
+            <!-- Empty State -->
+            <div class="empty-state" id="emptyState" style="display:none;">
+                <p>📋 No projects yet. Create your first project to get started!</p>
+            </div>
+        </main>
+    </div>
+
+    <!-- Add Team Modal -->
+    <div class="modal" id="addTeamModal">
+        <div class="modal-content">
+            <div class="modal-header">Create New Team</div>
+            <form onsubmit="createTeam(event)">
+                <div class="form-group">
+                    <label for="teamName">Team Name</label>
+                    <input type="text" id="teamName" required placeholder="Enter team name">
+                </div>
+                <div class="form-group">
+                    <label for="teamDescription">Description</label>
+                    <textarea id="teamDescription" placeholder="Enter team description" rows="3"></textarea>
+                </div>
+                <div class="modal-actions">
+                    <button type="button" class="btn btn-secondary" onclick="closeModal('addTeamModal')">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Create Team</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Add Project Modal -->
+    <div class="modal" id="addProjectModal">
+        <div class="modal-content">
+            <div class="modal-header">Create New Project</div>
+            <form onsubmit="createProject(event)">
+                <div class="form-group">
+                    <label for="projectName">Project Name</label>
+                    <input type="text" id="projectName" required placeholder="Enter project name">
+                </div>
+                <div class="form-group">
+                    <label for="projectDescription">Description</label>
+                    <textarea id="projectDescription" placeholder="Enter project description" rows="3"></textarea>
+                </div>
+                <div class="form-group">
+                    <label for="projectTeam">Team</label>
+                    <select id="projectTeam" required>
+                        <option value="">Select a team</option>
+                    </select>
+                </div>
+                <div class="modal-actions">
+                    <button type="button" class="btn btn-secondary" onclick="closeModal('addProjectModal')">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Create Project</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Add Task Modal -->
+    <div class="modal" id="addTaskModal">
+        <div class="modal-content">
+            <div class="modal-header">Add New Task</div>
+            <form onsubmit="createTask(event)">
+                <div class="form-group">
+                    <label for="taskTitle">Task Title</label>
+                    <input type="text" id="taskTitle" required placeholder="Enter task title">
+                </div>
+                <div class="form-group">
+                    <label for="taskDescription">Description</label>
+                    <textarea id="taskDescription" placeholder="Enter task description" rows="3"></textarea>
+                </div>
+                <div class="form-group">
+                    <label for="taskPriority">Priority</label>
+                    <select id="taskPriority" required>
+                        <option value="low">Low</option>
+                        <option value="medium" selected>Medium</option>
+                        <option value="high">High</option>
+                        <option value="critical">Critical</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="taskDueDate">Due Date</label>
+                    <input type="date" id="taskDueDate">
+                </div>
+                <div class="modal-actions">
+                    <button type="button" class="btn btn-secondary" onclick="closeModal('addTaskModal')">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Create Task</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="js/config.js"></script>
+    <script src="js/api.js"></script>
+    <script src="js/app.js"></script>
+    <script src="js/kanban.js"></script>
+    <script src="js/milestones.js"></script>
+    
+    <!-- Offline Detection -->
+    <script>
+        // Detect online/offline status
+        window.addEventListener('online', function() {
+            document.body.classList.remove('offline');
+            document.getElementById('offlineBanner').classList.remove('show');
+            console.log('✅ You are back online!');
+            // Optionally sync data here
+        });
+
+        window.addEventListener('offline', function() {
+            document.body.classList.add('offline');
+            document.getElementById('offlineBanner').classList.add('show');
+            console.log('⚠️ You are offline - using cached data');
+        });
+
+        // Check initial status
+        if (!navigator.onLine) {
+            document.body.classList.add('offline');
+            document.getElementById('offlineBanner').classList.add('show');
+        }
+    </script>
+</body>
+</html>

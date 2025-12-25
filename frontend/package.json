@@ -1,0 +1,21 @@
+{
+  "name": "agb-it-planner-frontend",
+  "version": "1.0.0",
+  "description": "Frontend for AGB IT Multi-Project Planner",
+  "private": true,
+  "scripts": {
+    "start": "python3 -m http.server 3000",
+    "build": "echo 'Frontend is static HTML/CSS/JS - no build needed'",
+    "dev": "python3 -m http.server 3000",
+    "test": "echo 'No tests configured for static frontend'"
+  },
+  "keywords": [
+    "planner",
+    "project-management",
+    "kanban",
+    "timeline"
+  ],
+  "author": "AGB IT Solutions",
+  "license": "MIT",
+  "devDependencies": {}
+}
