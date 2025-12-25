@@ -74,7 +74,7 @@ STEP 2: Push Code to GitHub
 ────────────────────────────────────────────────────────────────────────────
   cd /home/user/agb_planner
   
-  git remote add origin https://github.com/YOUR-USERNAME/AGB_IT_Planner.git
+  git remote add origin https://github.com/agbitsolutions/AGB_IT_Planner.git
   git branch -M main
   git push -u origin main
 
