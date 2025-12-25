@@ -3,19 +3,19 @@ import path from 'path';
 
 class NotificationService {
   async checkDueTasks() {
-    const Task = (await import('../models/Task.js')).default;
-    const User = (await import('../models/User.js')).default;
-    const Project = (await import('../models/Project.js')).default;
-    const EmailService = (await import('./emailService.js')).default;
-
-    const tomorrow = new Date();
-    tomorrow.setDate(tomorrow.getDate() + 1);
-    tomorrow.setHours(0, 0, 0, 0);
-
-    const endOfTomorrow = new Date(tomorrow);
-    endOfTomorrow.setHours(23, 59, 59, 999);
-
     try {
+      const Task = (await import('../models/Task.js')).default;
+      const User = (await import('../models/User.js')).default;
+      const Project = (await import('../models/Project.js')).default;
+      const EmailService = (await import('./emailService.js')).default;
+
+      const tomorrow = new Date();
+      tomorrow.setDate(tomorrow.getDate() + 1);
+      tomorrow.setHours(0, 0, 0, 0);
+
+      const endOfTomorrow = new Date(tomorrow);
+      endOfTomorrow.setHours(23, 59, 59, 999);
+
       const dueTasks = await Task.find({
         dueDate: {
           $gte: tomorrow,
@@ -34,19 +34,19 @@ class NotificationService {
         }
       }
 
-      console.log(`Checked ${dueTasks.length} tasks due tomorrow`);
+      console.log(`✓ Checked ${dueTasks.length} tasks due tomorrow`);
     } catch (error) {
-      console.error('Error checking due tasks:', error);
+      console.warn('⚠️  Notification service unavailable (MongoDB not connected)');
     }
   }
 
   async checkOverdueTasks() {
-    const Task = (await import('../models/Task.js')).default;
-    const EmailService = (await import('./emailService.js')).default;
-
-    const now = new Date();
-
     try {
+      const Task = (await import('../models/Task.js')).default;
+      const EmailService = (await import('./emailService.js')).default;
+
+      const now = new Date();
+      
       const overdueTasks = await Task.find({
         dueDate: { $lt: now },
         isCompleted: false,
@@ -62,20 +62,20 @@ class NotificationService {
         }
       }
 
-      console.log(`Checked ${overdueTasks.length} overdue tasks`);
+      console.log(`✓ Checked ${overdueTasks.length} overdue tasks`);
     } catch (error) {
-      console.error('Error checking overdue tasks:', error);
+      console.warn('⚠️  Notification service unavailable (MongoDB not connected)');
     }
   }
 
   async checkMilestoneAlerts() {
-    const Milestone = (await import('../models/Milestone.js')).default;
-    const EmailService = (await import('./emailService.js')).default;
-
-    const thirtyDaysFromNow = new Date();
-    thirtyDaysFromNow.setDate(thirtyDaysFromNow.getDate() + 30);
-
     try {
+      const Milestone = (await import('../models/Milestone.js')).default;
+      const EmailService = (await import('./emailService.js')).default;
+
+      const thirtyDaysFromNow = new Date();
+      thirtyDaysFromNow.setDate(thirtyDaysFromNow.getDate() + 30);
+
       const upcomingMilestones = await Milestone.find({
         dueDate: {
           $gte: new Date(),
@@ -94,11 +94,7 @@ class NotificationService {
         }
       }
 
-      console.log(`Checked ${upcomingMilestones.length} upcoming milestones`);
+      console.log(`✓ Checked ${upcomingMilestones.length} upcoming milestones`);
     } catch (error) {
-      console.error('Error checking milestone alerts:', error);
-    }
-  }
-}
-
+      console.warn('⚠️  Notification service unavailable (MongoDB not connected)');
 export default new NotificationService();
