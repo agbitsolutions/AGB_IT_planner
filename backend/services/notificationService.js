@@ -97,4 +97,8 @@ class NotificationService {
       console.log(`✓ Checked ${upcomingMilestones.length} upcoming milestones`);
     } catch (error) {
       console.warn('⚠️  Notification service unavailable (MongoDB not connected)');
+    }
+  }
+}
+
 export default new NotificationService();
