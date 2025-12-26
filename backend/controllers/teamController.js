@@ -1,5 +1,13 @@
 import Team from '../models/Team.js';
 import User from '../models/User.js';
+import demoStorage from '../utils/demoStorage.js';
+
+// Check if MongoDB is available
+let useDemo = false;
+
+export const setDemoMode = (isDemo) => {
+  useDemo = isDemo;
+};
 
 export const createTeam = async (req, res, next) => {
   try {
@@ -8,7 +16,7 @@ export const createTeam = async (req, res, next) => {
     // For demo/testing mode without authentication
     const ownerId = req.user?.id || 'demo_user';
     
-    const team = await Team.create({
+    const teamData = {
       name,
       description,
       owner: ownerId,
@@ -19,13 +27,42 @@ export const createTeam = async (req, res, next) => {
           role: 'lead',
         },
       ] : [],
-    });
+    };
+
+    // Use demo storage if MongoDB is not available
+    if (useDemo) {
+      const team = demoStorage.createTeam(teamData);
+      return res.status(201).json({
+        success: true,
+        data: team,
+      });
+    }
+
+    // Otherwise use MongoDB
+    const team = await Team.create(teamData);
 
     res.status(201).json({
       success: true,
       data: team,
     });
   } catch (error) {
+    // Fall back to demo storage on error
+    if (!useDemo) {
+      console.warn('⚠️  MongoDB error, falling back to demo storage:', error.message);
+      setDemoMode(true);
+      const teamData = {
+        name: req.body.name,
+        description: req.body.description,
+        owner: req.user?.id || 'demo_user',
+        isPublic: req.body.isPublic !== undefined ? req.body.isPublic : true,
+        members: req.user ? [{ userId: req.user.id, role: 'lead' }] : [],
+      };
+      const team = demoStorage.createTeam(teamData);
+      return res.status(201).json({
+        success: true,
+        data: team,
+      });
+    }
     next(error);
   }
 };
@@ -213,10 +250,16 @@ export const getUserTeams = async (req, res, next) => {
 
 export const getPublicTeams = async (req, res, next) => {
   try {
-    const teams = await Team.find({ isPublic: true })
-      .populate('owner', 'name email')
-      .populate('members.userId', 'name email avatar')
-      .populate('projects', 'name');
+    let teams;
+
+    if (useDemo) {
+      teams = demoStorage.getTeams().filter((t) => t.isPublic);
+    } else {
+      teams = await Team.find({ isPublic: true })
+        .populate('owner', 'name email')
+        .populate('members.userId', 'name email avatar')
+        .populate('projects', 'name');
+    }
 
     res.status(200).json({
       success: true,
@@ -224,6 +267,12 @@ export const getPublicTeams = async (req, res, next) => {
       data: teams,
     });
   } catch (error) {
-    next(error);
+    // Fall back to demo storage
+    const teams = demoStorage.getTeams().filter((t) => t.isPublic);
+    res.status(200).json({
+      success: true,
+      count: teams.length,
+      data: teams,
+    });
   }
 };
