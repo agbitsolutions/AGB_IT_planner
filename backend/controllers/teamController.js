@@ -5,17 +5,20 @@ export const createTeam = async (req, res, next) => {
   try {
     const { name, description, isPublic } = req.body;
 
+    // For demo/testing mode without authentication
+    const ownerId = req.user?.id || 'demo_user';
+    
     const team = await Team.create({
       name,
       description,
-      owner: req.user.id,
+      owner: ownerId,
       isPublic: isPublic !== undefined ? isPublic : true,
-      members: [
+      members: req.user ? [
         {
           userId: req.user.id,
           role: 'lead',
         },
-      ],
+      ] : [],
     });
 
     res.status(201).json({
