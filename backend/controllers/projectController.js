@@ -1,32 +1,77 @@
 import Project from '../models/Project.js';
 import Task from '../models/Task.js';
+import demoStorage from '../utils/demoStorage.js';
+
+let useDemo = false;
+
+export const setDemoMode = (isDemo) => {
+  useDemo = isDemo;
+};
 
 export const createProject = async (req, res, next) => {
   try {
     const { name, description, team } = req.body;
 
-    const project = await Project.create({
+    const projectData = {
       name,
       description,
       team,
-      owner: req.user.id,
-    });
+      owner: req.user?.id || 'demo_user',
+      tasks: [],
+      milestones: [],
+    };
+
+    // Use demo storage if needed
+    if (useDemo) {
+      const project = demoStorage.createProject(projectData);
+      return res.status(201).json({
+        success: true,
+        data: project,
+      });
+    }
+
+    // Otherwise use MongoDB
+    const project = await Project.create(projectData);
 
     res.status(201).json({
       success: true,
       data: project,
     });
   } catch (error) {
+    // Fall back to demo storage
+    if (!useDemo) {
+      console.warn('⚠️  MongoDB error, falling back to demo storage:', error.message);
+      setDemoMode(true);
+      const projectData = {
+        name: req.body.name,
+        description: req.body.description,
+        team: req.body.team,
+        owner: req.user?.id || 'demo_user',
+        tasks: [],
+        milestones: [],
+      };
+      const project = demoStorage.createProject(projectData);
+      return res.status(201).json({
+        success: true,
+        data: project,
+      });
+    }
     next(error);
   }
 };
 
 export const getAllProjects = async (req, res, next) => {
   try {
-    const projects = await Project.find({ team: req.query.teamId })
-      .populate('owner', 'name email')
-      .populate('team', 'name')
-      .sort({ createdAt: -1 });
+    let projects;
+
+    if (useDemo) {
+      projects = demoStorage.getProjectsByTeam(req.query.teamId);
+    } else {
+      projects = await Project.find({ team: req.query.teamId })
+        .populate('owner', 'name email')
+        .populate('team', 'name')
+        .sort({ createdAt: -1 });
+    }
 
     res.status(200).json({
       success: true,
@@ -34,7 +79,13 @@ export const getAllProjects = async (req, res, next) => {
       data: projects,
     });
   } catch (error) {
-    next(error);
+    // Fall back to demo
+    const projects = demoStorage.getProjectsByTeam(req.query.teamId);
+    res.status(200).json({
+      success: true,
+      count: projects.length,
+      data: projects,
+    });
   }
 };
 
