@@ -11,9 +11,9 @@ const CONFIG = {
       BASE_URL: 'http://localhost:5000',
       TIMEOUT: 10000,
     },
-    // Production (your server)
+    // Production (ngrok tunnel to local backend)
     production: {
-      BASE_URL: 'https://your-api.com', // Change this to your production API URL
+      BASE_URL: 'https://vicenta-unnominated-randal.ngrok-free.dev', // ngrok tunnel URL
       TIMEOUT: 15000,
     },
   },
