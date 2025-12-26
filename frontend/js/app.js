@@ -17,8 +17,11 @@ let appState = {
 // Initialize app
 async function init() {
   try {
+    const apiConfig = CONFIG.getApiConfig();
+    const baseUrl = apiConfig.BASE_URL;
+    
     // Load teams
-    const teamsResponse = await fetch('http://localhost:5000/api/teams', {
+    const teamsResponse = await fetch(`${baseUrl}/api/teams`, {
       headers: {
         'Authorization': `Bearer ${localStorage.getItem('token') || ''}`,
         'Content-Type': 'application/json',
@@ -32,7 +35,7 @@ async function init() {
 
     if (appState.teams.length === 0) {
       // Load public teams if no user teams
-      const publicResponse = await fetch('http://localhost:5000/api/teams/public', {
+      const publicResponse = await fetch(`${baseUrl}/api/teams/public`, {
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('token') || ''}`,
           'Content-Type': 'application/json',
@@ -58,7 +61,9 @@ async function init() {
 
 async function loadProjectsForTeam(teamId) {
   try {
-    const response = await fetch(`http://localhost:5000/api/projects?teamId=${teamId}`, {
+    const apiConfig = CONFIG.getApiConfig();
+    const baseUrl = apiConfig.BASE_URL;
+    const response = await fetch(`${baseUrl}/api/projects?teamId=${teamId}`, {
       headers: {
         'Authorization': `Bearer ${localStorage.getItem('token') || ''}`,
         'Content-Type': 'application/json',
@@ -85,7 +90,9 @@ async function loadProjectsForTeam(teamId) {
 
 async function loadProjectData(projectId) {
   try {
-    const response = await fetch(`http://localhost:5000/api/projects/${projectId}`, {
+    const apiConfig = CONFIG.getApiConfig();
+    const baseUrl = apiConfig.BASE_URL;
+    const response = await fetch(`${baseUrl}/api/projects/${projectId}`, {
       headers: {
         'Authorization': `Bearer ${localStorage.getItem('token') || ''}`,
         'Content-Type': 'application/json',
@@ -150,7 +157,9 @@ async function createTeam(event) {
   const description = document.getElementById('teamDescription').value;
 
   try {
-    const response = await fetch('http://localhost:5000/api/teams', {
+    const apiConfig = CONFIG.getApiConfig();
+    const baseUrl = apiConfig.BASE_URL;
+    const response = await fetch(`${baseUrl}/api/teams`, {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${localStorage.getItem('token') || ''}`,
@@ -182,7 +191,9 @@ async function createProject(event) {
   }
 
   try {
-    const response = await fetch('http://localhost:5000/api/projects', {
+    const apiConfig = CONFIG.getApiConfig();
+    const baseUrl = apiConfig.BASE_URL;
+    const response = await fetch(`${baseUrl}/api/projects`, {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${localStorage.getItem('token') || ''}`,
@@ -216,7 +227,9 @@ async function createTask(event) {
   }
 
   try {
-    const response = await fetch('http://localhost:5000/api/tasks', {
+    const apiConfig = CONFIG.getApiConfig();
+    const baseUrl = apiConfig.BASE_URL;
+    const response = await fetch(`${baseUrl}/api/tasks`, {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${localStorage.getItem('token') || ''}`,
@@ -444,7 +457,9 @@ async function dropTask(event, newStatus) {
   const taskId = event.dataTransfer.getData('taskId');
 
   try {
-    const response = await fetch(`http://localhost:5000/api/tasks/${taskId}/status`, {
+    const apiConfig = CONFIG.getApiConfig();
+    const baseUrl = apiConfig.BASE_URL;
+    const response = await fetch(`${baseUrl}/api/tasks/${taskId}/status`, {
       method: 'PATCH',
       headers: {
         'Authorization': `Bearer ${localStorage.getItem('token') || ''}`,
