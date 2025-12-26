@@ -16,9 +16,8 @@ const teamSchema = new mongoose.Schema(
     members: [
       {
         userId: {
-          type: mongoose.Schema.ObjectId,
-          ref: 'User',
-          required: true,
+          type: mongoose.Schema.Types.Mixed, // Allow both ObjectId and string for demo mode
+          required: false, // Optional for demo mode
         },
         role: {
           type: String,
@@ -32,8 +31,7 @@ const teamSchema = new mongoose.Schema(
       },
     ],
     owner: {
-      type: mongoose.Schema.ObjectId,
-      ref: 'User',
+      type: mongoose.Schema.Types.Mixed, // Allow both ObjectId and string for demo mode
       required: true,
     },
     projects: [
