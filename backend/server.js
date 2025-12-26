@@ -19,8 +19,10 @@ const __dirname = path.dirname(__filename);
 
 const app = express();
 
-// Connect to MongoDB
-connectDB();
+// Connect to MongoDB (non-blocking)
+connectDB().catch(err => {
+  console.warn('⚠️  MongoDB connection error:', err.message);
+});
 
 // Middleware
 app.use(helmet());
@@ -46,6 +48,23 @@ app.get('/api/health', (req, res) => {
   });
 });
 
+// Root API endpoint
+app.get('/api', (req, res) => {
+  res.status(200).json({
+    success: true,
+    message: 'AGB Planner API',
+    version: '1.0.0',
+    endpoints: {
+      health: '/api/health',
+      projects: '/api/projects',
+      tasks: '/api/tasks',
+      milestones: '/api/milestones',
+      teams: '/api/teams',
+    },
+    timestamp: new Date().toISOString(),
+  });
+});
+
 // Error handling middleware
 app.use(errorHandler);
 
@@ -65,17 +84,33 @@ const server = app.listen(PORT, () => {
   console.log(`🔗 http://localhost:${PORT}`);
 
   // Start notification scheduler (runs every hour)
-  setInterval(() => {
-    console.log('🔔 Running notification checks...');
-    notificationService.checkDueTasks();
-    notificationService.checkOverdueTasks();
-    notificationService.checkMilestoneAlerts();
-  }, 3600000); // 1 hour
+  const scheduleNotifications = () => {
+    setInterval(() => {
+      console.log('🔔 Running notification checks...');
+      Promise.all([
+        notificationService.checkDueTasks().catch(err => {
+          console.error('❌ Error checking due tasks:', err.message);
+        }),
+        notificationService.checkOverdueTasks().catch(err => {
+          console.error('❌ Error checking overdue tasks:', err.message);
+        }),
+        notificationService.checkMilestoneAlerts().catch(err => {
+          console.error('❌ Error checking milestone alerts:', err.message);
+        }),
+      ]);
+    }, 3600000); // 1 hour
+  };
 
-  // Run once on startup
-  notificationService.checkDueTasks();
-  notificationService.checkOverdueTasks();
-  notificationService.checkMilestoneAlerts();
+  // Run once on startup (don't crash if MongoDB unavailable)
+  Promise.all([
+    notificationService.checkDueTasks().catch(err => {
+      console.warn('⚠️  Notification service unavailable (MongoDB connection issue)');
+    }),
+    notificationService.checkOverdueTasks().catch(err => {}),
+    notificationService.checkMilestoneAlerts().catch(err => {}),
+  ]).then(() => {
+    scheduleNotifications();
+  });
 });
 
 // Graceful shutdown
