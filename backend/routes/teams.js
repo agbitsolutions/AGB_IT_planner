@@ -4,13 +4,13 @@ import { auth } from '../middleware/auth.js';
 
 const router = express.Router();
 
-// All routes require authentication
-router.use(auth);
-
-// Team routes
-router.post('/', teamController.createTeam);
-router.get('/', teamController.getUserTeams);
+// Public routes (no authentication required for demo/testing)
+router.post('/', teamController.createTeam); // Allow public team creation
 router.get('/public', teamController.getPublicTeams);
+
+// Protected routes (require authentication)
+router.use(auth);
+router.get('/', teamController.getUserTeams);
 router.get('/:id', teamController.getTeamById);
 router.put('/:id', teamController.updateTeam);
 router.delete('/:id', teamController.deleteTeam);
