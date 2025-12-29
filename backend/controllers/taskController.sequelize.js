@@ -116,29 +116,6 @@ export const updateTask = async (req, res, next) => {
   }
 };
 
-export const completeTask = async (req, res, next) => {
-  try {
-    const task = await Task.findByPk(req.params.id);
-
-    if (!task) {
-      return res.status(404).json({ message: 'Task not found' });
-    }
-
-    await task.update({
-      isCompleted: true,
-      completedAt: new Date(),
-      status: 'done',
-    });
-
-    res.status(200).json({
-      success: true,
-      data: task,
-    });
-  } catch (error) {
-    next(error);
-  }
-};
-
 export const deleteTask = async (req, res, next) => {
   try {
     const task = await Task.findByPk(req.params.id);
@@ -183,9 +160,9 @@ export const updateTaskStatus = async (req, res, next) => {
   }
 };
 
-export const assignTask = async (req, res, next) => {
+export const addTaskComment = async (req, res, next) => {
   try {
-    const { assignee } = req.body;
+    const { content } = req.body;
 
     const task = await Task.findByPk(req.params.id);
 
@@ -193,7 +170,14 @@ export const assignTask = async (req, res, next) => {
       return res.status(404).json({ message: 'Task not found' });
     }
 
-    await task.update({ assignee });
+    const comments = task.comments || [];
+    comments.push({
+      author: req.user?.id || 'anonymous',
+      content,
+      createdAt: new Date(),
+    });
+
+    await task.update({ comments });
 
     res.status(200).json({
       success: true,
@@ -204,7 +188,7 @@ export const assignTask = async (req, res, next) => {
   }
 };
 
-export const addAttachment = async (req, res, next) => {
+export const addTaskAttachment = async (req, res, next) => {
   try {
     if (!req.file) {
       return res.status(400).json({ message: 'No file uploaded' });
@@ -236,28 +220,28 @@ export const addAttachment = async (req, res, next) => {
   }
 };
 
-export const addComment = async (req, res, next) => {
+export const getTasksByProject = async (req, res, next) => {
   try {
-    const { content } = req.body;
-
-    const task = await Task.findByPk(req.params.id);
-
-    if (!task) {
-      return res.status(404).json({ message: 'Task not found' });
-    }
-
-    const comments = task.comments || [];
-    comments.push({
-      author: req.user?.id || 'anonymous',
-      content,
-      createdAt: new Date(),
+    const tasks = await Task.findAll({
+      where: { project: req.params.projectId },
+      order: [
+        ['status', 'ASC'],
+        ['priority', 'DESC']
+      ]
     });
 
-    await task.update({ comments });
+    // Group by status for Kanban view
+    const tasksByStatus = {
+      todo: tasks.filter(t => t.status === 'todo'),
+      in_progress: tasks.filter(t => t.status === 'in_progress'),
+      in_review: tasks.filter(t => t.status === 'in_review'),
+      done: tasks.filter(t => t.status === 'done'),
+    };
 
     res.status(200).json({
       success: true,
-      data: task,
+      count: tasks.length,
+      data: tasksByStatus,
     });
   } catch (error) {
     next(error);

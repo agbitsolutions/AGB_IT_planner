@@ -1,8 +1,10 @@
 import Team from '../models/Team.js';
 import User from '../models/User.js';
+import Project from '../models/Project.js';
 import demoStorage from '../utils/demoStorage.js';
+import { Op } from 'sequelize';
 
-// Check if MongoDB is available
+// Check if database is available
 let useDemo = false;
 
 export const setDemoMode = (isDemo) => {
@@ -25,11 +27,12 @@ export const createTeam = async (req, res, next) => {
         {
           userId: req.user.id,
           role: 'lead',
+          joinedAt: new Date(),
         },
       ] : [],
     };
 
-    // Use demo storage if MongoDB is not available
+    // Use demo storage if database is not available
     if (useDemo) {
       const team = demoStorage.createTeam(teamData);
       return res.status(201).json({
@@ -38,7 +41,7 @@ export const createTeam = async (req, res, next) => {
       });
     }
 
-    // Otherwise use MongoDB
+    // Create with Sequelize
     const team = await Team.create(teamData);
 
     res.status(201).json({
@@ -48,14 +51,14 @@ export const createTeam = async (req, res, next) => {
   } catch (error) {
     // Fall back to demo storage on error
     if (!useDemo) {
-      console.warn('⚠️  MongoDB error, falling back to demo storage:', error.message);
+      console.warn('⚠️  Database error, falling back to demo storage:', error.message);
       setDemoMode(true);
       const teamData = {
         name: req.body.name,
         description: req.body.description,
         owner: req.user?.id || 'demo_user',
         isPublic: req.body.isPublic !== undefined ? req.body.isPublic : true,
-        members: req.user ? [{ userId: req.user.id, role: 'lead' }] : [],
+        members: req.user ? [{ userId: req.user.id, role: 'lead', joinedAt: new Date() }] : [],
       };
       const team = demoStorage.createTeam(teamData);
       return res.status(201).json({
@@ -69,10 +72,11 @@ export const createTeam = async (req, res, next) => {
 
 export const getAllTeams = async (req, res, next) => {
   try {
-    const teams = await Team.find()
-      .populate('owner', 'name email')
-      .populate('members.userId', 'name email avatar')
-      .populate('projects', 'name');
+    const teams = await Team.findAll({
+      include: [
+        { model: Project, as: 'teamProjects', attributes: ['name'] }
+      ]
+    });
 
     res.status(200).json({
       success: true,
@@ -86,10 +90,11 @@ export const getAllTeams = async (req, res, next) => {
 
 export const getTeamById = async (req, res, next) => {
   try {
-    const team = await Team.findById(req.params.id)
-      .populate('owner', 'name email')
-      .populate('members.userId', 'name email avatar')
-      .populate('projects', 'name description');
+    const team = await Team.findByPk(req.params.id, {
+      include: [
+        { model: Project, as: 'teamProjects', attributes: ['name', 'description'] }
+      ]
+    });
 
     if (!team) {
       return res.status(404).json({ message: 'Team not found' });
@@ -108,21 +113,22 @@ export const updateTeam = async (req, res, next) => {
   try {
     const { name, description, isPublic } = req.body;
 
-    let team = await Team.findById(req.params.id);
+    let team = await Team.findByPk(req.params.id);
 
     if (!team) {
       return res.status(404).json({ message: 'Team not found' });
     }
 
-    if (team.owner.toString() !== req.user.id) {
+    if (team.owner !== req.user?.id) {
       return res.status(403).json({ message: 'Not authorized to update this team' });
     }
 
-    if (name) team.name = name;
-    if (description) team.description = description;
-    if (isPublic !== undefined) team.isPublic = isPublic;
+    const updateData = {};
+    if (name) updateData.name = name;
+    if (description !== undefined) updateData.description = description;
+    if (isPublic !== undefined) updateData.isPublic = isPublic;
 
-    team = await team.save();
+    await team.update(updateData);
 
     res.status(200).json({
       success: true,
@@ -135,23 +141,17 @@ export const updateTeam = async (req, res, next) => {
 
 export const deleteTeam = async (req, res, next) => {
   try {
-    const team = await Team.findById(req.params.id);
+    const team = await Team.findByPk(req.params.id);
 
     if (!team) {
       return res.status(404).json({ message: 'Team not found' });
     }
 
-    if (team.owner.toString() !== req.user.id) {
+    if (team.owner !== req.user?.id) {
       return res.status(403).json({ message: 'Not authorized to delete this team' });
     }
 
-    await Team.findByIdAndRemove(req.params.id);
-
-    // Remove team from all users
-    await User.updateMany(
-      { teams: req.params.id },
-      { $pull: { teams: req.params.id } }
-    );
+    await team.destroy();
 
     res.status(200).json({
       success: true,
@@ -166,29 +166,29 @@ export const addTeamMember = async (req, res, next) => {
   try {
     const { userId, role } = req.body;
 
-    const team = await Team.findById(req.params.id);
+    const team = await Team.findByPk(req.params.id);
 
     if (!team) {
       return res.status(404).json({ message: 'Team not found' });
     }
 
+    // Get current members
+    const members = team.members || [];
+    
     // Check if user is already a member
-    const isMember = team.members.some((m) => m.userId.toString() === userId);
+    const isMember = members.some((m) => m.userId === userId);
     if (isMember) {
       return res.status(400).json({ message: 'User is already a member of this team' });
     }
 
-    team.members.push({
+    // Add new member
+    members.push({
       userId,
       role: role || 'member',
+      joinedAt: new Date(),
     });
 
-    await team.save();
-
-    // Add team to user's teams array
-    await User.findByIdAndUpdate(userId, {
-      $addToSet: { teams: req.params.id },
-    });
+    await team.update({ members });
 
     res.status(200).json({
       success: true,
@@ -203,22 +203,16 @@ export const removeTeamMember = async (req, res, next) => {
   try {
     const { userId } = req.body;
 
-    const team = await Team.findByIdAndUpdate(
-      req.params.id,
-      {
-        $pull: { members: { userId } },
-      },
-      { new: true }
-    );
+    const team = await Team.findByPk(req.params.id);
 
     if (!team) {
       return res.status(404).json({ message: 'Team not found' });
     }
 
-    // Remove team from user's teams array
-    await User.findByIdAndUpdate(userId, {
-      $pull: { teams: req.params.id },
-    });
+    // Filter out the member
+    const members = (team.members || []).filter(m => m.userId !== userId);
+    
+    await team.update({ members });
 
     res.status(200).json({
       success: true,
@@ -231,17 +225,24 @@ export const removeTeamMember = async (req, res, next) => {
 
 export const getUserTeams = async (req, res, next) => {
   try {
-    const userId = req.user.id;
+    const userId = req.user?.id;
 
-    const teams = await Team.find({ 'members.userId': userId })
-      .populate('owner', 'name email')
-      .populate('members.userId', 'name email avatar')
-      .populate('projects', 'name');
+    const teams = await Team.findAll({
+      include: [
+        { model: Project, as: 'teamProjects', attributes: ['name'] }
+      ]
+    });
+
+    // Filter teams where user is a member
+    const userTeams = teams.filter(team => {
+      const members = team.members || [];
+      return members.some(m => m.userId === userId) || team.owner === userId;
+    });
 
     res.status(200).json({
       success: true,
-      count: teams.length,
-      data: teams,
+      count: userTeams.length,
+      data: userTeams,
     });
   } catch (error) {
     next(error);
@@ -255,10 +256,12 @@ export const getPublicTeams = async (req, res, next) => {
     if (useDemo) {
       teams = demoStorage.getTeams().filter((t) => t.isPublic);
     } else {
-      teams = await Team.find({ isPublic: true })
-        .populate('owner', 'name email')
-        .populate('members.userId', 'name email avatar')
-        .populate('projects', 'name');
+      teams = await Team.findAll({
+        where: { isPublic: true },
+        include: [
+          { model: Project, as: 'teamProjects', attributes: ['name'] }
+        ]
+      });
     }
 
     res.status(200).json({

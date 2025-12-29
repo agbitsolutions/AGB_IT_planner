@@ -1,94 +1,109 @@
-import mongoose from 'mongoose';
+import { DataTypes, Model } from 'sequelize';
+import { sequelize } from '../config/database.js';
 
-const taskSchema = new mongoose.Schema(
+class Task extends Model {}
+
+Task.init(
   {
+    id: {
+      type: DataTypes.INTEGER,
+      primaryKey: true,
+      autoIncrement: true,
+    },
     title: {
-      type: String,
-      required: [true, 'Please provide a task title'],
-      trim: true,
-      maxlength: [200, 'Title cannot exceed 200 characters'],
+      type: DataTypes.STRING(200),
+      allowNull: false,
+      validate: {
+        notEmpty: { msg: 'Please provide a task title' },
+        len: { args: [1, 200], msg: 'Title cannot exceed 200 characters' }
+      }
     },
     description: {
-      type: String,
-      maxlength: [2000, 'Description cannot exceed 2000 characters'],
+      type: DataTypes.STRING(2000),
+      validate: {
+        len: { args: [0, 2000], msg: 'Description cannot exceed 2000 characters' }
+      }
     },
     project: {
-      type: mongoose.Schema.ObjectId,
-      ref: 'Project',
-      required: true,
+      type: DataTypes.INTEGER,
+      allowNull: false,
+      references: {
+        model: 'projects',
+        key: 'id'
+      }
     },
     assignee: {
-      type: mongoose.Schema.ObjectId,
-      ref: 'User',
+      type: DataTypes.STRING,
     },
     priority: {
-      type: String,
-      enum: ['low', 'medium', 'high', 'critical'],
-      default: 'medium',
+      type: DataTypes.ENUM('low', 'medium', 'high', 'critical'),
+      defaultValue: 'medium',
     },
     status: {
-      type: String,
-      enum: ['todo', 'in_progress', 'in_review', 'done'],
-      default: 'todo',
+      type: DataTypes.ENUM('todo', 'in_progress', 'in_review', 'done'),
+      defaultValue: 'todo',
     },
     dueDate: {
-      type: Date,
+      type: DataTypes.DATE,
     },
     estimatedHours: {
-      type: Number,
-      default: 0,
+      type: DataTypes.FLOAT,
+      defaultValue: 0,
     },
     actualHours: {
-      type: Number,
-      default: 0,
+      type: DataTypes.FLOAT,
+      defaultValue: 0,
     },
     milestone: {
-      type: mongoose.Schema.ObjectId,
-      ref: 'Milestone',
+      type: DataTypes.INTEGER,
+      references: {
+        model: 'milestones',
+        key: 'id'
+      }
     },
-    attachments: [
-      {
-        filename: String,
-        url: String,
-        fileSize: Number,
-        uploadedAt: {
-          type: Date,
-          default: Date.now,
-        },
-        uploadedBy: {
-          type: mongoose.Schema.ObjectId,
-          ref: 'User',
-        },
-      },
-    ],
-    comments: [
-      {
-        author: {
-          type: mongoose.Schema.ObjectId,
-          ref: 'User',
-        },
-        content: String,
-        createdAt: {
-          type: Date,
-          default: Date.now,
-        },
-      },
-    ],
-    tags: [String],
+    attachments: {
+      type: DataTypes.JSON,
+      defaultValue: [],
+      get() {
+        const rawValue = this.getDataValue('attachments');
+        return rawValue ? (typeof rawValue === 'string' ? JSON.parse(rawValue) : rawValue) : [];
+      }
+    },
+    comments: {
+      type: DataTypes.JSON,
+      defaultValue: [],
+      get() {
+        const rawValue = this.getDataValue('comments');
+        return rawValue ? (typeof rawValue === 'string' ? JSON.parse(rawValue) : rawValue) : [];
+      }
+    },
+    tags: {
+      type: DataTypes.JSON,
+      defaultValue: [],
+      get() {
+        const rawValue = this.getDataValue('tags');
+        return rawValue ? (typeof rawValue === 'string' ? JSON.parse(rawValue) : rawValue) : [];
+      }
+    },
     isCompleted: {
-      type: Boolean,
-      default: false,
+      type: DataTypes.BOOLEAN,
+      defaultValue: false,
     },
     completedAt: {
-      type: Date,
+      type: DataTypes.DATE,
     },
   },
-  { timestamps: true }
+  {
+    sequelize,
+    modelName: 'Task',
+    tableName: 'tasks',
+    timestamps: true,
+    indexes: [
+      { fields: ['project', 'status'] },
+      { fields: ['assignee'] },
+      { fields: ['dueDate'] }
+    ]
+  }
 );
 
-// Index for efficient querying
-taskSchema.index({ project: 1, status: 1 });
-taskSchema.index({ assignee: 1 });
-taskSchema.index({ dueDate: 1 });
-
-export default mongoose.model('Task', taskSchema);
+export default Task;

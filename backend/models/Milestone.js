@@ -1,62 +1,93 @@
-import mongoose from 'mongoose';
+import { DataTypes, Model } from 'sequelize';
+import { sequelize } from '../config/database.js';
 
-const milestoneSchema = new mongoose.Schema(
+class Milestone extends Model {}
+
+Milestone.init(
   {
+    id: {
+      type: DataTypes.INTEGER,
+      primaryKey: true,
+      autoIncrement: true,
+    },
     title: {
-      type: String,
-      required: [true, 'Please provide a milestone title'],
-      trim: true,
-      maxlength: [200, 'Title cannot exceed 200 characters'],
+      type: DataTypes.STRING(200),
+      allowNull: false,
+      validate: {
+        notEmpty: { msg: 'Please provide a milestone title' },
+        len: { args: [1, 200], msg: 'Title cannot exceed 200 characters' }
+      }
     },
     description: {
-      type: String,
-      maxlength: [1000, 'Description cannot exceed 1000 characters'],
+      type: DataTypes.STRING(1000),
+      validate: {
+        len: { args: [0, 1000], msg: 'Description cannot exceed 1000 characters' }
+      }
     },
     project: {
-      type: mongoose.Schema.ObjectId,
-      ref: 'Project',
-      required: true,
+      type: DataTypes.INTEGER,
+      allowNull: false,
+      references: {
+        model: 'projects',
+        key: 'id'
+      }
     },
     team: {
-      type: mongoose.Schema.ObjectId,
-      ref: 'Team',
-      required: true,
+      type: DataTypes.INTEGER,
+      allowNull: false,
+      references: {
+        model: 'teams',
+        key: 'id'
+      }
     },
     startDate: {
-      type: Date,
-      required: [true, 'Please provide a start date'],
+      type: DataTypes.DATE,
+      allowNull: false,
+      validate: {
+        notNull: { msg: 'Please provide a start date' }
+      }
     },
     dueDate: {
-      type: Date,
-      required: [true, 'Please provide a due date'],
+      type: DataTypes.DATE,
+      allowNull: false,
+      validate: {
+        notNull: { msg: 'Please provide a due date' }
+      }
     },
-    tasks: [
-      {
-        type: mongoose.Schema.ObjectId,
-        ref: 'Task',
-      },
-    ],
+    tasks: {
+      type: DataTypes.JSON,
+      defaultValue: [],
+      get() {
+        const rawValue = this.getDataValue('tasks');
+        return rawValue ? (typeof rawValue === 'string' ? JSON.parse(rawValue) : rawValue) : [];
+      }
+    },
     status: {
-      type: String,
-      enum: ['not_started', 'in_progress', 'at_risk', 'completed'],
-      default: 'not_started',
+      type: DataTypes.ENUM('not_started', 'in_progress', 'at_risk', 'completed'),
+      defaultValue: 'not_started',
     },
     progress: {
-      type: Number,
-      default: 0,
-      min: 0,
-      max: 100,
+      type: DataTypes.FLOAT,
+      defaultValue: 0,
+      validate: {
+        min: 0,
+        max: 100
+      }
     },
     owner: {
-      type: mongoose.Schema.ObjectId,
-      ref: 'User',
+      type: DataTypes.STRING,
     },
   },
-  { timestamps: true }
+  {
+    sequelize,
+    modelName: 'Milestone',
+    tableName: 'milestones',
+    timestamps: true,
+    indexes: [
+      { fields: ['team', 'dueDate'] },
+      { fields: ['project', 'status'] }
+    ]
+  }
 );
 
-// Index for timeline queries
-milestoneSchema.index({ team: 1, dueDate: 1 });
-milestoneSchema.index({ project: 1, status: 1 });
-
-export default mongoose.model('Milestone', milestoneSchema);
+export default Milestone;

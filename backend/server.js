@@ -4,7 +4,8 @@ import cors from 'cors';
 import helmet from 'helmet';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import connectDB from './config/database.js';
+import { connectDB } from './config/database.js';
+import './models/index.js'; // Import models to set up associations
 import { errorHandler } from './middleware/auth.js';
 import notificationService from './services/notificationService.js';
 import projectRoutes from './routes/projects.js';
@@ -19,9 +20,9 @@ const __dirname = path.dirname(__filename);
 
 const app = express();
 
-// Connect to MongoDB (non-blocking)
+// Connect to Database (non-blocking)
 connectDB().catch(err => {
-  console.warn('⚠️  MongoDB connection error:', err.message);
+  console.warn('⚠️  Database connection error:', err.message);
 });
 
 // Middleware

@@ -1,57 +1,79 @@
-import mongoose from 'mongoose';
+import { DataTypes, Model } from 'sequelize';
+import { sequelize } from '../config/database.js';
 
-const projectSchema = new mongoose.Schema(
+class Project extends Model {}
+
+Project.init(
   {
+    id: {
+      type: DataTypes.INTEGER,
+      primaryKey: true,
+      autoIncrement: true,
+    },
     name: {
-      type: String,
-      required: [true, 'Please provide a project name'],
-      trim: true,
-      maxlength: [100, 'Project name cannot exceed 100 characters'],
+      type: DataTypes.STRING(100),
+      allowNull: false,
+      validate: {
+        notEmpty: { msg: 'Please provide a project name' },
+        len: { args: [1, 100], msg: 'Project name cannot exceed 100 characters' }
+      }
     },
     description: {
-      type: String,
-      maxlength: [1000, 'Description cannot exceed 1000 characters'],
+      type: DataTypes.STRING(1000),
+      validate: {
+        len: { args: [0, 1000], msg: 'Description cannot exceed 1000 characters' }
+      }
     },
     team: {
-      type: mongoose.Schema.ObjectId,
-      ref: 'Team',
-      required: true,
+      type: DataTypes.INTEGER,
+      allowNull: false,
+      references: {
+        model: 'teams',
+        key: 'id'
+      }
     },
     owner: {
-      type: mongoose.Schema.ObjectId,
-      ref: 'User',
-      required: true,
+      type: DataTypes.STRING,
+      allowNull: false,
     },
-    tasks: [
-      {
-        type: mongoose.Schema.ObjectId,
-        ref: 'Task',
-      },
-    ],
-    milestones: [
-      {
-        type: mongoose.Schema.ObjectId,
-        ref: 'Milestone',
-      },
-    ],
+    tasks: {
+      type: DataTypes.JSON,
+      defaultValue: [],
+      get() {
+        const rawValue = this.getDataValue('tasks');
+        return rawValue ? (typeof rawValue === 'string' ? JSON.parse(rawValue) : rawValue) : [];
+      }
+    },
+    milestones: {
+      type: DataTypes.JSON,
+      defaultValue: [],
+      get() {
+        const rawValue = this.getDataValue('milestones');
+        return rawValue ? (typeof rawValue === 'string' ? JSON.parse(rawValue) : rawValue) : [];
+      }
+    },
     status: {
-      type: String,
-      enum: ['planning', 'active', 'paused', 'completed', 'archived'],
-      default: 'active',
+      type: DataTypes.ENUM('planning', 'active', 'paused', 'completed', 'archived'),
+      defaultValue: 'active',
     },
     startDate: {
-      type: Date,
-      default: Date.now,
+      type: DataTypes.DATE,
+      defaultValue: DataTypes.NOW,
     },
     endDate: {
-      type: Date,
+      type: DataTypes.DATE,
     },
     color: {
-      type: String,
-      default: '#2080c0',
+      type: DataTypes.STRING,
+      defaultValue: '#2080c0',
     },
   },
-  { timestamps: true }
+  {
+    sequelize,
+    modelName: 'Project',
+    tableName: 'projects',
+    timestamps: true,
+  }
 );
 
-export default mongoose.model('Project', projectSchema);
+export default Project;

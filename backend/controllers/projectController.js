@@ -1,6 +1,8 @@
 import Project from '../models/Project.js';
 import Task from '../models/Task.js';
+import Team from '../models/Team.js';
 import demoStorage from '../utils/demoStorage.js';
+import { Op } from 'sequelize';
 
 let useDemo = false;
 
@@ -30,7 +32,7 @@ export const createProject = async (req, res, next) => {
       });
     }
 
-    // Otherwise use MongoDB
+    // Create project with Sequelize
     const project = await Project.create(projectData);
 
     res.status(201).json({
@@ -40,7 +42,7 @@ export const createProject = async (req, res, next) => {
   } catch (error) {
     // Fall back to demo storage
     if (!useDemo) {
-      console.warn('⚠️  MongoDB error, falling back to demo storage:', error.message);
+      console.warn('⚠️  Database error, falling back to demo storage:', error.message);
       setDemoMode(true);
       const projectData = {
         name: req.body.name,
@@ -67,10 +69,13 @@ export const getAllProjects = async (req, res, next) => {
     if (useDemo) {
       projects = demoStorage.getProjectsByTeam(req.query.teamId);
     } else {
-      projects = await Project.find({ team: req.query.teamId })
-        .populate('owner', 'name email')
-        .populate('team', 'name')
-        .sort({ createdAt: -1 });
+      projects = await Project.findAll({
+        where: { team: req.query.teamId },
+        include: [
+          { model: Team, as: 'teamData', attributes: ['name'] }
+        ],
+        order: [['createdAt', 'DESC']]
+      });
     }
 
     res.status(200).json({
@@ -91,19 +96,27 @@ export const getAllProjects = async (req, res, next) => {
 
 export const getProjectById = async (req, res, next) => {
   try {
-    const project = await Project.findById(req.params.id)
-      .populate('owner', 'name email')
-      .populate('team', 'name')
-      .populate('tasks')
-      .populate('milestones');
+    const project = await Project.findByPk(req.params.id, {
+      include: [
+        { model: Team, as: 'teamData', attributes: ['name'] }
+      ]
+    });
 
     if (!project) {
       return res.status(404).json({ message: 'Project not found' });
     }
 
+    // Get associated tasks
+    const tasks = await Task.findAll({
+      where: { project: req.params.id }
+    });
+    
+    const projectData = project.toJSON();
+    projectData.tasks = tasks;
+
     res.status(200).json({
       success: true,
-      data: project,
+      data: projectData,
     });
   } catch (error) {
     next(error);
@@ -114,21 +127,23 @@ export const updateProject = async (req, res, next) => {
   try {
     const { name, description, status, color, endDate } = req.body;
 
-    let project = await Project.findById(req.params.id);
+    let project = await Project.findByPk(req.params.id);
 
     if (!project) {
       return res.status(404).json({ message: 'Project not found' });
     }
 
-    if (project.owner.toString() !== req.user.id) {
+    if (project.owner !== req.user.id) {
       return res.status(403).json({ message: 'Not authorized to update this project' });
     }
 
-    project = await Project.findByIdAndUpdate(
-      req.params.id,
-      { name, description, status, color, endDate },
-      { new: true, runValidators: true }
-    );
+    await project.update({
+      name: name || project.name,
+      description: description !== undefined ? description : project.description,
+      status: status || project.status,
+      color: color || project.color,
+      endDate: endDate || project.endDate,
+    });
 
     res.status(200).json({
       success: true,
@@ -141,20 +156,20 @@ export const updateProject = async (req, res, next) => {
 
 export const deleteProject = async (req, res, next) => {
   try {
-    const project = await Project.findById(req.params.id);
+    const project = await Project.findByPk(req.params.id);
 
     if (!project) {
       return res.status(404).json({ message: 'Project not found' });
     }
 
-    if (project.owner.toString() !== req.user.id) {
+    if (project.owner !== req.user.id) {
       return res.status(403).json({ message: 'Not authorized to delete this project' });
     }
 
     // Delete all tasks associated with this project
-    await Task.deleteMany({ project: req.params.id });
+    await Task.destroy({ where: { project: req.params.id } });
 
-    await Project.findByIdAndRemove(req.params.id);
+    await project.destroy();
 
     res.status(200).json({
       success: true,
@@ -167,13 +182,16 @@ export const deleteProject = async (req, res, next) => {
 
 export const getProjectStats = async (req, res, next) => {
   try {
-    const project = await Project.findById(req.params.id).populate('tasks');
+    const project = await Project.findByPk(req.params.id);
 
     if (!project) {
       return res.status(404).json({ message: 'Project not found' });
     }
 
-    const tasks = project.tasks;
+    const tasks = await Task.findAll({
+      where: { project: req.params.id }
+    });
+
     const totalTasks = tasks.length;
     const completedTasks = tasks.filter((t) => t.isCompleted).length;
     const pendingTasks = totalTasks - completedTasks;

@@ -1,5 +1,8 @@
 import Milestone from '../models/Milestone.js';
 import Task from '../models/Task.js';
+import Team from '../models/Team.js';
+import Project from '../models/Project.js';
+import { Op } from 'sequelize';
 
 export const createMilestone = async (req, res, next) => {
   try {
@@ -12,7 +15,7 @@ export const createMilestone = async (req, res, next) => {
       team,
       startDate,
       dueDate,
-      owner: owner || req.user.id,
+      owner: owner || req.user?.id || null,
     });
 
     res.status(201).json({
@@ -27,17 +30,20 @@ export const createMilestone = async (req, res, next) => {
 export const getAllMilestones = async (req, res, next) => {
   try {
     const { teamId, projectId, status } = req.query;
-    const filter = {};
+    const where = {};
 
-    if (teamId) filter.team = teamId;
-    if (projectId) filter.project = projectId;
-    if (status) filter.status = status;
+    if (teamId) where.team = teamId;
+    if (projectId) where.project = projectId;
+    if (status) where.status = status;
 
-    const milestones = await Milestone.find(filter)
-      .populate('team', 'name')
-      .populate('project', 'name')
-      .populate('owner', 'name email')
-      .sort({ dueDate: 1 });
+    const milestones = await Milestone.findAll({
+      where,
+      include: [
+        { model: Team, as: 'milestoneTeam', attributes: ['name'] },
+        { model: Project, as: 'milestoneProject', attributes: ['name'] }
+      ],
+      order: [['dueDate', 'ASC']]
+    });
 
     res.status(200).json({
       success: true,
@@ -51,19 +57,28 @@ export const getAllMilestones = async (req, res, next) => {
 
 export const getMilestoneById = async (req, res, next) => {
   try {
-    const milestone = await Milestone.findById(req.params.id)
-      .populate('team', 'name members')
-      .populate('project', 'name')
-      .populate('owner', 'name email')
-      .populate('tasks');
+    const milestone = await Milestone.findByPk(req.params.id, {
+      include: [
+        { model: Team, as: 'milestoneTeam', attributes: ['name', 'members'] },
+        { model: Project, as: 'milestoneProject', attributes: ['name'] }
+      ]
+    });
 
     if (!milestone) {
       return res.status(404).json({ message: 'Milestone not found' });
     }
 
+    // Get associated tasks
+    const tasks = await Task.findAll({
+      where: { milestone: req.params.id }
+    });
+
+    const milestoneData = milestone.toJSON();
+    milestoneData.tasks = tasks;
+
     res.status(200).json({
       success: true,
-      data: milestone,
+      data: milestoneData,
     });
   } catch (error) {
     next(error);
@@ -74,20 +89,21 @@ export const updateMilestone = async (req, res, next) => {
   try {
     const { title, description, status, progress, dueDate, owner } = req.body;
 
-    let milestone = await Milestone.findById(req.params.id);
+    let milestone = await Milestone.findByPk(req.params.id);
 
     if (!milestone) {
       return res.status(404).json({ message: 'Milestone not found' });
     }
 
-    if (title) milestone.title = title;
-    if (description) milestone.description = description;
-    if (status) milestone.status = status;
-    if (progress !== undefined) milestone.progress = progress;
-    if (dueDate) milestone.dueDate = dueDate;
-    if (owner) milestone.owner = owner;
+    const updateData = {};
+    if (title) updateData.title = title;
+    if (description !== undefined) updateData.description = description;
+    if (status) updateData.status = status;
+    if (progress !== undefined) updateData.progress = progress;
+    if (dueDate) updateData.dueDate = dueDate;
+    if (owner) updateData.owner = owner;
 
-    milestone = await milestone.save();
+    await milestone.update(updateData);
 
     res.status(200).json({
       success: true,
@@ -100,19 +116,19 @@ export const updateMilestone = async (req, res, next) => {
 
 export const deleteMilestone = async (req, res, next) => {
   try {
-    const milestone = await Milestone.findById(req.params.id);
+    const milestone = await Milestone.findByPk(req.params.id);
 
     if (!milestone) {
       return res.status(404).json({ message: 'Milestone not found' });
     }
 
     // Remove milestone reference from tasks
-    await Task.updateMany(
-      { milestone: req.params.id },
-      { $unset: { milestone: 1 } }
+    await Task.update(
+      { milestone: null },
+      { where: { milestone: req.params.id } }
     );
 
-    await Milestone.findByIdAndRemove(req.params.id);
+    await milestone.destroy();
 
     res.status(200).json({
       success: true,
@@ -131,10 +147,16 @@ export const getMilestoneTimeline = async (req, res, next) => {
       return res.status(400).json({ message: 'teamId is required' });
     }
 
-    const milestones = await Milestone.find({ team: teamId, status: { $ne: 'completed' } })
-      .populate('project', 'name color')
-      .populate('owner', 'name email')
-      .sort({ startDate: 1 });
+    const milestones = await Milestone.findAll({
+      where: {
+        team: teamId,
+        status: { [Op.ne]: 'completed' }
+      },
+      include: [
+        { model: Project, as: 'milestoneProject', attributes: ['name', 'color'] }
+      ],
+      order: [['startDate', 'ASC']]
+    });
 
     // Group milestones by month for timeline view
     const timeline = {};
@@ -157,20 +179,22 @@ export const getMilestoneTimeline = async (req, res, next) => {
 
 export const calculateMilestoneProgress = async (req, res, next) => {
   try {
-    const milestone = await Milestone.findById(req.params.id).populate('tasks');
+    const milestone = await Milestone.findByPk(req.params.id);
 
     if (!milestone) {
       return res.status(404).json({ message: 'Milestone not found' });
     }
 
-    const tasks = await Task.find({ milestone: req.params.id });
+    const tasks = await Task.findAll({
+      where: { milestone: req.params.id }
+    });
+    
     const completedTasks = tasks.filter((t) => t.isCompleted).length;
     const totalTasks = tasks.length;
 
     const progress = totalTasks === 0 ? 0 : Math.round((completedTasks / totalTasks) * 100);
 
-    milestone.progress = progress;
-    await milestone.save();
+    await milestone.update({ progress });
 
     res.status(200).json({
       success: true,

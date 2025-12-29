@@ -1,52 +1,61 @@
-import mongoose from 'mongoose';
+import { DataTypes, Model } from 'sequelize';
+import { sequelize } from '../config/database.js';
 
-const teamSchema = new mongoose.Schema(
+class Team extends Model {}
+
+Team.init(
   {
+    id: {
+      type: DataTypes.INTEGER,
+      primaryKey: true,
+      autoIncrement: true,
+    },
     name: {
-      type: String,
-      required: [true, 'Please provide a team name'],
-      trim: true,
-      maxlength: [100, 'Team name cannot exceed 100 characters'],
+      type: DataTypes.STRING(100),
+      allowNull: false,
       unique: true,
+      validate: {
+        notEmpty: { msg: 'Please provide a team name' },
+        len: { args: [1, 100], msg: 'Team name cannot exceed 100 characters' }
+      }
     },
     description: {
-      type: String,
-      maxlength: [500, 'Description cannot exceed 500 characters'],
+      type: DataTypes.STRING(500),
+      validate: {
+        len: { args: [0, 500], msg: 'Description cannot exceed 500 characters' }
+      }
     },
-    members: [
-      {
-        userId: {
-          type: mongoose.Schema.Types.Mixed, // Allow both ObjectId and string for demo mode
-          required: false, // Optional for demo mode
-        },
-        role: {
-          type: String,
-          enum: ['lead', 'member', 'viewer'],
-          default: 'member',
-        },
-        joinedAt: {
-          type: Date,
-          default: Date.now,
-        },
-      },
-    ],
+    members: {
+      type: DataTypes.JSON,
+      defaultValue: [],
+      get() {
+        const rawValue = this.getDataValue('members');
+        return rawValue ? (typeof rawValue === 'string' ? JSON.parse(rawValue) : rawValue) : [];
+      }
+    },
     owner: {
-      type: mongoose.Schema.Types.Mixed, // Allow both ObjectId and string for demo mode
-      required: true,
+      type: DataTypes.STRING,
+      allowNull: false,
     },
-    projects: [
-      {
-        type: mongoose.Schema.ObjectId,
-        ref: 'Project',
-      },
-    ],
+    projects: {
+      type: DataTypes.JSON,
+      defaultValue: [],
+      get() {
+        const rawValue = this.getDataValue('projects');
+        return rawValue ? (typeof rawValue === 'string' ? JSON.parse(rawValue) : rawValue) : [];
+      }
+    },
     isPublic: {
-      type: Boolean,
-      default: true,
-      description: 'If true, all new members can access by default',
+      type: DataTypes.BOOLEAN,
+      defaultValue: true,
     },
   },
-  { timestamps: true }
+  {
+    sequelize,
+    modelName: 'Team',
+    tableName: 'teams',
+    timestamps: true,
+  }
 );
 
-export default mongoose.model('Team', teamSchema);
+export default Team;

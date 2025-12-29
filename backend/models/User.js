@@ -1,50 +1,76 @@
-import mongoose from 'mongoose';
+import { DataTypes, Model } from 'sequelize';
+import { sequelize } from '../config/database.js';
 
-const userSchema = new mongoose.Schema(
+class User extends Model {}
+
+User.init(
   {
+    id: {
+      type: DataTypes.INTEGER,
+      primaryKey: true,
+      autoIncrement: true,
+    },
     name: {
-      type: String,
-      required: [true, 'Please provide a name'],
-      trim: true,
-      maxlength: [50, 'Name cannot be more than 50 characters'],
+      type: DataTypes.STRING(50),
+      allowNull: false,
+      validate: {
+        notEmpty: { msg: 'Please provide a name' },
+        len: { args: [1, 50], msg: 'Name cannot be more than 50 characters' }
+      }
     },
     email: {
-      type: String,
-      required: [true, 'Please provide an email'],
+      type: DataTypes.STRING,
+      allowNull: false,
       unique: true,
-      lowercase: true,
-      match: [
-        /^\w+([.-]?\w+)*@\w+([.-]?\w+)*(\.\w{2,3})+$/,
-        'Please provide a valid email',
-      ],
+      validate: {
+        isEmail: { msg: 'Please provide a valid email' }
+      },
+      set(value) {
+        this.setDataValue('email', value.toLowerCase());
+      }
     },
     password: {
-      type: String,
-      required: [true, 'Please provide a password'],
-      minlength: 6,
-      select: false,
+      type: DataTypes.STRING,
+      allowNull: false,
+      validate: {
+        len: { args: [6, 255], msg: 'Password must be at least 6 characters' }
+      }
     },
-    teams: [
-      {
-        type: mongoose.Schema.ObjectId,
-        ref: 'Team',
-      },
-    ],
+    teams: {
+      type: DataTypes.JSON,
+      defaultValue: [],
+      get() {
+        const rawValue = this.getDataValue('teams');
+        return rawValue ? (typeof rawValue === 'string' ? JSON.parse(rawValue) : rawValue) : [];
+      }
+    },
     role: {
-      type: String,
-      enum: ['user', 'admin', 'manager'],
-      default: 'user',
+      type: DataTypes.ENUM('user', 'admin', 'manager'),
+      defaultValue: 'user',
     },
     avatar: {
-      type: String,
-      default: null,
+      type: DataTypes.STRING,
+      defaultValue: null,
     },
     isActive: {
-      type: Boolean,
-      default: true,
+      type: DataTypes.BOOLEAN,
+      defaultValue: true,
     },
   },
-  { timestamps: true }
+  {
+    sequelize,
+    modelName: 'User',
+    tableName: 'users',
+    timestamps: true,
+    defaultScope: {
+      attributes: { exclude: ['password'] }
+    },
+    scopes: {
+      withPassword: {
+        attributes: { include: ['password'] }
+      }
+    }
+  }
 );
 
-export default mongoose.model('User', userSchema);
+export default User;
