@@ -34,9 +34,11 @@ export const createProject = async (req, res, next) => {
 
     // Create project with Sequelize
     const project = await Project.create(projectData);
+    console.log(`✅ Project created successfully in database: ID ${project.id}, Name: ${project.name}`);
 
     res.status(201).json({
       success: true,
+      message: 'Project created successfully',
       data: project,
     });
   } catch (error) {

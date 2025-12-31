@@ -11,9 +11,9 @@ const CONFIG = {
       BASE_URL: 'http://localhost:5000',
       TIMEOUT: 10000,
     },
-    // Production (ngrok tunnel to local backend)
+    // Production
     production: {
-      BASE_URL: 'https://vicenta-unnominated-randal.ngrok-free.dev', // ngrok tunnel URL
+      BASE_URL: 'https://agb-planner.vercel.app',
       TIMEOUT: 15000,
     },
   },

@@ -8,15 +8,19 @@ const __dirname = path.dirname(__filename);
 // SQLite database path
 const dbPath = process.env.DB_PATH || path.join(__dirname, '../../database.sqlite');
 
+// Serverless-optimized configuration
 const sequelize = new Sequelize({
   dialect: 'sqlite',
   storage: dbPath,
   logging: process.env.NODE_ENV === 'development' ? console.log : false,
   pool: {
-    max: 5,
-    min: 0,
-    acquire: 30000,
-    idle: 10000
+    max: 3,          // Reduced for serverless
+    min: 0,          // No minimum connections
+    acquire: 10000,  // Faster acquisition for cold starts
+    idle: 5000       // Release connections faster
+  },
+  retry: {
+    max: 3
   }
 });
 

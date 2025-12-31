@@ -43,9 +43,11 @@ export const createTeam = async (req, res, next) => {
 
     // Create with Sequelize
     const team = await Team.create(teamData);
+    console.log(`✅ Team created successfully in database: ID ${team.id}, Name: ${team.name}`);
 
     res.status(201).json({
       success: true,
+      message: 'Team created successfully',
       data: team,
     });
   } catch (error) {

@@ -170,12 +170,21 @@ async function createTeam(event) {
 
     if (response.ok) {
       const data = await response.json();
+      console.log('✅ Team created:', data);
       appState.teams.push(data.data);
       closeModal('addTeamModal');
+      
+      // Show success message
+      showNotification(data.message || 'Team created successfully!', 'success');
       render();
+    } else {
+      const errorData = await response.json();
+      console.error('❌ Failed to create team:', errorData);
+      showNotification(errorData.message || 'Failed to create team', 'error');
     }
   } catch (error) {
-    console.error('Error creating team:', error);
+    console.error('❌ Error creating team:', error);
+    showNotification('Error creating team. Please try again.', 'error');
   }
 }
 
@@ -204,13 +213,22 @@ async function createProject(event) {
 
     if (response.ok) {
       const data = await response.json();
+      console.log('✅ Project created:', data);
       appState.projects.push(data.data);
       appState.currentProjectId = data.data._id || data.data.id;
       closeModal('addProjectModal');
+      
+      // Show success message
+      showNotification(data.message || 'Project created successfully!', 'success');
       render();
+    } else {
+      const errorData = await response.json();
+      console.error('❌ Failed to create project:', errorData);
+      showNotification(errorData.message || 'Failed to create project', 'error');
     }
   } catch (error) {
-    console.error('Error creating project:', error);
+    console.error('❌ Error creating project:', error);
+    showNotification('Error creating project. Please try again.', 'error');
   }
 }
 
@@ -518,6 +536,35 @@ function renderTimeline() {
 function selectTask(taskId) {
   // Task selection logic - can be expanded
   console.log('Selected task:', taskId);
+}
+
+// Show notification to user
+function showNotification(message, type = 'info') {
+  // Remove any existing notifications
+  const existingNotification = document.querySelector('.notification-toast');
+  if (existingNotification) {
+    existingNotification.remove();
+  }
+
+  // Create notification element
+  const notification = document.createElement('div');
+  notification.className = `notification-toast ${type}`;
+  notification.innerHTML = `
+    <span class="notification-icon">${type === 'success' ? '✅' : type === 'error' ? '❌' : 'ℹ️'}</span>
+    <span class="notification-message">${message}</span>
+  `;
+
+  // Add to page
+  document.body.appendChild(notification);
+
+  // Trigger animation
+  setTimeout(() => notification.classList.add('show'), 10);
+
+  // Auto remove after 3 seconds
+  setTimeout(() => {
+    notification.classList.remove('show');
+    setTimeout(() => notification.remove(), 300);
+  }, 3000);
 }
 
 // Initialize app on page load

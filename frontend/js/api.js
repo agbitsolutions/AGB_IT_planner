@@ -1,6 +1,7 @@
 /**
  * API Service Module
  * Handles all communication with the backend API with offline support
+ * This file uses standard JavaScript (no ES6 modules) for browser compatibility
  */
 
 // Use CONFIG from config.js or fallback
@@ -8,7 +9,7 @@ const getApiBaseUrl = () => {
   if (typeof CONFIG !== 'undefined') {
     return `${CONFIG.getApiUrl('/api')}`;
   }
-  return process.env.REACT_APP_API_URL || 'http://localhost:5000/api';
+  return 'http://localhost:5000/api';
 };
 
 const API_BASE_URL = getApiBaseUrl();
@@ -84,7 +85,8 @@ const fetchWithCache = async (url, options = {}) => {
 };
 
 // Projects API
-export const projectsAPI = {
+// Projects API
+const projectsAPI = {
   async createProject(data) {
     const response = await fetch(`${API_BASE_URL}/projects`, {
       method: 'POST',
@@ -136,7 +138,8 @@ export const projectsAPI = {
 };
 
 // Tasks API
-export const tasksAPI = {
+// Tasks API
+const tasksAPI = {
   async createTask(data) {
     const response = await fetch(`${API_BASE_URL}/tasks`, {
       method: 'POST',
@@ -222,7 +225,8 @@ export const tasksAPI = {
 };
 
 // Milestones API
-export const milestonesAPI = {
+// Milestones API
+const milestonesAPI = {
   async createMilestone(data) {
     const response = await fetch(`${API_BASE_URL}/milestones`, {
       method: 'POST',
@@ -284,7 +288,8 @@ export const milestonesAPI = {
 };
 
 // Teams API
-export const teamsAPI = {
+// Teams API
+const teamsAPI = {
   async createTeam(data) {
     const response = await fetch(`${API_BASE_URL}/teams`, {
       method: 'POST',
@@ -350,3 +355,9 @@ export const teamsAPI = {
     return response.json();
   },
 };
+
+// Make APIs available globally for browser usage
+window.projectsAPI = projectsAPI;
+window.tasksAPI = tasksAPI;
+window.milestonesAPI = milestonesAPI;
+window.teamsAPI = teamsAPI;

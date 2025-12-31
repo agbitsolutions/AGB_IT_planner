@@ -1,31 +1,46 @@
 import nodemailer from 'nodemailer';
 
+// Serverless-optimized email service with lazy initialization
 class EmailService {
   constructor() {
-    this.transporter = nodemailer.createTransport({
-      host: process.env.SMTP_HOST,
-      port: process.env.SMTP_PORT,
-      secure: true,
-      auth: {
-        user: process.env.SMTP_USER,
-        pass: process.env.SMTP_PASS,
-      },
-    });
+    this.transporter = null;
+  }
+
+  // Lazy initialize transporter (important for serverless)
+  getTransporter() {
+    if (!this.transporter) {
+      this.transporter = nodemailer.createTransport({
+        host: process.env.EMAIL_HOST || process.env.SMTP_HOST,
+        port: parseInt(process.env.EMAIL_PORT || process.env.SMTP_PORT || '587'),
+        secure: process.env.EMAIL_PORT === '465',
+        auth: {
+          user: process.env.EMAIL_USER || process.env.SMTP_USER,
+          pass: process.env.EMAIL_PASS || process.env.SMTP_PASS,
+        },
+        pool: false, // Important for serverless - no connection pooling
+        maxConnections: 1,
+        timeout: 10000,
+      });
+      console.log('✅ Email transporter initialized');
+    }
+    return this.transporter;
   }
 
   async sendTaskDueNotification(user, task, project) {
     const mailOptions = {
-      from: process.env.NOTIFICATION_FROM_EMAIL,
+      from: process.env.EMAIL_USER || process.env.NOTIFICATION_FROM_EMAIL,
       to: user.email,
       subject: `Task Due Tomorrow: ${task.title} - ${project.name}`,
       html: this.getTaskDueTemplate(user, task, project),
     };
 
     try {
-      await this.transporter.sendMail(mailOptions);
-      console.log(`Email sent to ${user.email}`);
+      const transporter = this.getTransporter();
+      await transporter.sendMail(mailOptions);
+      console.log(`✅ Email sent to ${user.email}`);
     } catch (error) {
-      console.error(`Error sending email: ${error.message}`);
+      console.error(`❌ Error sending email:`, error.message);
+      // Don't throw - email is not critical for app functionality
     }
   }
 
@@ -35,17 +50,18 @@ class EmailService {
     );
 
     const mailOptions = {
-      from: process.env.NOTIFICATION_FROM_EMAIL,
+      from: process.env.EMAIL_USER || process.env.NOTIFICATION_FROM_EMAIL,
       to: user.email,
       subject: `OVERDUE: ${task.title} - ${project.name}`,
       html: this.getTaskOverdueTemplate(user, task, project, daysOverdue),
     };
 
     try {
-      await this.transporter.sendMail(mailOptions);
-      console.log(`Overdue email sent to ${user.email}`);
+      const transporter = this.getTransporter();
+      await transporter.sendMail(mailOptions);
+      console.log(`✅ Overdue email sent to ${user.email}`);
     } catch (error) {
-      console.error(`Error sending overdue email: ${error.message}`);
+      console.error(`❌ Error sending overdue email:`, error.message);
     }
   }
 
@@ -55,33 +71,35 @@ class EmailService {
     );
 
     const mailOptions = {
-      from: process.env.NOTIFICATION_FROM_EMAIL,
+      from: process.env.EMAIL_USER || process.env.NOTIFICATION_FROM_EMAIL,
       to: user.email,
       subject: `Milestone Alert: ${milestone.title} - ${daysUntilDue} days remaining`,
       html: this.getMilestoneAlertTemplate(user, milestone, project, daysUntilDue),
     };
 
     try {
-      await this.transporter.sendMail(mailOptions);
-      console.log(`Milestone alert sent to ${user.email}`);
+      const transporter = this.getTransporter();
+      await transporter.sendMail(mailOptions);
+      console.log(`✅ Milestone alert sent to ${user.email}`);
     } catch (error) {
-      console.error(`Error sending milestone alert: ${error.message}`);
+      console.error(`❌ Error sending milestone alert:`, error.message);
     }
   }
 
   async sendTeamInvitation(email, teamName, invitedBy) {
     const mailOptions = {
-      from: process.env.NOTIFICATION_FROM_EMAIL,
+      from: process.env.EMAIL_USER || process.env.NOTIFICATION_FROM_EMAIL,
       to: email,
       subject: `You've been invited to join ${teamName}`,
       html: this.getTeamInvitationTemplate(teamName, invitedBy),
     };
 
     try {
-      await this.transporter.sendMail(mailOptions);
-      console.log(`Invitation sent to ${email}`);
+      const transporter = this.getTransporter();
+      await transporter.sendMail(mailOptions);
+      console.log(`✅ Invitation sent to ${email}`);
     } catch (error) {
-      console.error(`Error sending invitation: ${error.message}`);
+      console.error(`❌ Error sending invitation:`, error.message);
     }
   }
 

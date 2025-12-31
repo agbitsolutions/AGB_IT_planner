@@ -48,3 +48,21 @@ frontend/.next
 
 # Netlify
 .netlify/
+
+# Database
+database.sqlite
+*.db
+*.sqlite3
+
+# Archives (keep structure, not backups)
+archive/backup_*/
+archive/old_files_*/
+
+# Deployment artifacts
+*.tar.gz
+*.zip
+agb-backend.zip
+
+# Logs
+start.log
+.vercel
