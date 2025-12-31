@@ -3,8 +3,9 @@ import Task from '../models/Task.js';
 import Team from '../models/Team.js';
 import demoStorage from '../utils/demoStorage.js';
 import { Op } from 'sequelize';
+import { isVercel } from '../config/database.js';
 
-let useDemo = false;
+let useDemo = isVercel;
 
 export const setDemoMode = (isDemo) => {
   useDemo = isDemo;

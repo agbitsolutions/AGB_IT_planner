@@ -20,9 +20,15 @@ const __dirname = path.dirname(__filename);
 
 const app = express();
 
-// Connect to Database (non-blocking)
-connectDB().catch(err => {
-  console.warn('⚠️  Database connection error:', err.message);
+// Connect to Database (non-blocking, graceful failure)
+connectDB().then((db) => {
+  if (db) {
+    console.log('✅ Database ready');
+  } else {
+    console.log('🔵 Using demo storage (in-memory)');
+  }
+}).catch(err => {
+  console.warn('⚠️  Database unavailable, using demo storage:', err.message);
 });
 
 // Middleware

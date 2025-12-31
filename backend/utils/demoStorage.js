@@ -1,17 +1,57 @@
 /**
  * In-Memory Demo Storage
  * Used when MongoDB is not available for demo/testing
+ * Pre-populated with test data for Vercel deployment
  */
 
 const storage = {
-  teams: [],
-  projects: [],
+  teams: [
+    {
+      _id: 'team_1',
+      id: 1,
+      name: 'AGB Solutions',
+      description: 'Main development team',
+      owner: 'demo_user',
+      isPublic: true,
+      members: [],
+      projects: [],
+      createdAt: new Date('2025-12-29T10:15:09.474Z'),
+      updatedAt: new Date('2025-12-29T10:15:09.474Z'),
+    },
+    {
+      _id: 'team_2',
+      id: 2,
+      name: 'Demo Team',
+      description: 'Demo team for testing features',
+      owner: 'demo_user',
+      isPublic: true,
+      members: [],
+      projects: [],
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    }
+  ],
+  projects: [
+    {
+      _id: 'project_1',
+      id: 1,
+      name: 'AGB Planner',
+      description: 'Multi-project planning application',
+      team: 'team_1',
+      status: 'active',
+      priority: 'high',
+      startDate: new Date('2025-12-01'),
+      endDate: new Date('2025-12-31'),
+      createdAt: new Date('2025-12-29T10:15:09.474Z'),
+      updatedAt: new Date('2025-12-29T10:15:09.474Z'),
+    }
+  ],
   tasks: [],
   milestones: [],
 };
 
-let teamId = 1;
-let projectId = 1;
+let teamId = 3;  // Start from 3 since we have 2 pre-populated
+let projectId = 2;
 let taskId = 1;
 let milestoneId = 1;
 

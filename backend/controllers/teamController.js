@@ -3,9 +3,10 @@ import User from '../models/User.js';
 import Project from '../models/Project.js';
 import demoStorage from '../utils/demoStorage.js';
 import { Op } from 'sequelize';
+import { isDatabaseAvailable, isVercel } from '../config/database.js';
 
-// Check if database is available
-let useDemo = false;
+// Check if database is available - auto-detect on Vercel
+let useDemo = isVercel;
 
 export const setDemoMode = (isDemo) => {
   useDemo = isDemo;
