@@ -15,11 +15,19 @@ export const createTeam = async (req, res, next) => {
   try {
     const { name, description, isPublic } = req.body;
 
+    // Validate required fields
+    if (!name || name.trim() === '') {
+      return res.status(400).json({
+        success: false,
+        message: 'Team name is required',
+      });
+    }
+
     // For demo/testing mode without authentication
     const ownerId = req.user?.id || 'demo_user';
     
     const teamData = {
-      name,
+      name: name.trim(),
       description,
       owner: ownerId,
       isPublic: isPublic !== undefined ? isPublic : true,
@@ -51,6 +59,21 @@ export const createTeam = async (req, res, next) => {
       data: team,
     });
   } catch (error) {
+    // Handle Sequelize validation errors
+    if (error.name === 'SequelizeUniqueConstraintError') {
+      return res.status(400).json({
+        success: false,
+        message: 'A team with this name already exists',
+      });
+    }
+    
+    if (error.name === 'SequelizeValidationError') {
+      return res.status(400).json({
+        success: false,
+        message: error.errors[0]?.message || 'Validation error',
+      });
+    }
+    
     // Fall back to demo storage on error
     if (!useDemo) {
       console.warn('⚠️  Database error, falling back to demo storage:', error.message);

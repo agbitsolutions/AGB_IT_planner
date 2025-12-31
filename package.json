@@ -1,8 +1,16 @@
 {
+  "name": "agb-planner",
+  "version": "1.0.0",
+  "scripts": {
+    "test": "playwright test",
+    "test:ui": "playwright test --ui",
+    "test:report": "playwright show-report"
+  },
   "dependencies": {
     "init": "^0.1.2"
   },
   "devDependencies": {
+    "@playwright/test": "^1.57.0",
     "@railway/cli": "^4.16.1",
     "railway": "^2.0.17",
     "vercel": "^50.1.3"
