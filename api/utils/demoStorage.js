@@ -244,6 +244,8 @@ export const demoStorage = {
 
   getProjects: () => storage.projects,
 
+  getProjectById: (id) => storage.projects.find((p) => p._id === id || p.id == id),
+
   getProjectsByTeam: (teamId) =>
     storage.projects.filter((p) => p.team === teamId || p.team === teamId.toString()),
 
@@ -260,6 +262,16 @@ export const demoStorage = {
   },
 
   getTasks: () => storage.tasks,
+
+  getTaskById: (id) => storage.tasks.find((t) => t._id === id || t.id == id),
+
+  updateTask: (id, data) => {
+    const task = storage.tasks.find((t) => t._id === id || t.id == id);
+    if (task) {
+      Object.assign(task, data, { updatedAt: new Date() });
+    }
+    return task;
+  },
 
   getTasksByProject: (projectId) =>
     storage.tasks.filter((t) => t.project === projectId || t.project === projectId.toString()),
