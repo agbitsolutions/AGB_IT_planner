@@ -31,7 +31,8 @@ Team.init(
       get() {
         const rawValue = this.getDataValue('members');
         return rawValue ? (typeof rawValue === 'string' ? JSON.parse(rawValue) : rawValue) : [];
-      }
+      },
+      comment: 'Array of {userId, name, whatsappNumber, role, joinedAt}'
     },
     owner: {
       type: DataTypes.STRING,

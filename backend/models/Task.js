@@ -77,6 +77,24 @@ Task.init(
         return rawValue ? (typeof rawValue === 'string' ? JSON.parse(rawValue) : rawValue) : [];
       }
     },
+    mentionedMembers: {
+      type: DataTypes.JSON,
+      defaultValue: [],
+      get() {
+        const rawValue = this.getDataValue('mentionedMembers');
+        return rawValue ? (typeof rawValue === 'string' ? JSON.parse(rawValue) : rawValue) : [];
+      },
+      comment: 'Array of {userId, name, whatsappNumber} for notifications'
+    },
+    notificationsSent: {
+      type: DataTypes.JSON,
+      defaultValue: [],
+      get() {
+        const rawValue = this.getDataValue('notificationsSent');
+        return rawValue ? (typeof rawValue === 'string' ? JSON.parse(rawValue) : rawValue) : [];
+      },
+      comment: 'Array of {userId, sentAt, method} tracking notification history'
+    },
     tags: {
       type: DataTypes.JSON,
       defaultValue: [],

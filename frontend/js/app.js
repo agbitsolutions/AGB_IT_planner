@@ -155,6 +155,25 @@ async function createTeam(event) {
   event.preventDefault();
   const name = document.getElementById('teamName').value;
   const description = document.getElementById('teamDescription').value;
+  
+  // Collect team members with WhatsApp numbers
+  const memberRows = document.querySelectorAll('#teamMembersContainer .team-member-row');
+  const members = [];
+  
+  memberRows.forEach((row, index) => {
+    const nameInput = row.querySelector('.member-name');
+    const whatsappInput = row.querySelector('.member-whatsapp');
+    
+    if (nameInput && nameInput.value.trim()) {
+      members.push({
+        userId: `member_${Date.now()}_${index}`,
+        name: nameInput.value.trim(),
+        whatsappNumber: whatsappInput ? whatsappInput.value.trim() : '',
+        role: 'member',
+        joinedAt: new Date().toISOString()
+      });
+    }
+  });
 
   try {
     const apiConfig = CONFIG.getApiConfig();
@@ -165,7 +184,12 @@ async function createTeam(event) {
         'Authorization': `Bearer ${localStorage.getItem('token') || ''}`,
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({ name, description, isPublic: true }),
+      body: JSON.stringify({ 
+        name, 
+        description, 
+        isPublic: true,
+        members 
+      }),
     });
 
     if (response.ok) {
@@ -536,6 +560,33 @@ function renderTimeline() {
 function selectTask(taskId) {
   // Task selection logic - can be expanded
   console.log('Selected task:', taskId);
+}
+
+// Team member management functions
+let memberIndex = 1;
+
+function addMemberRow() {
+  const container = document.getElementById('teamMembersContainer');
+  if (!container) return;
+  
+  const row = document.createElement('div');
+  row.className = 'team-member-row';
+  row.dataset.index = memberIndex;
+  row.innerHTML = `
+    <input type="text" class="member-name" placeholder="Member name" style="width: 45%">
+    <input type="tel" class="member-whatsapp" placeholder="WhatsApp: +91XXXXXXXXXX" style="width: 45%">
+    <button type="button" onclick="removeMember(${memberIndex})" class="btn-remove" style="width: 8%">×</button>
+  `;
+  
+  container.appendChild(row);
+  memberIndex++;
+}
+
+function removeMember(index) {
+  const row = document.querySelector(`[data-index="${index}"]`);
+  if (row) {
+    row.remove();
+  }
 }
 
 // Show notification to user

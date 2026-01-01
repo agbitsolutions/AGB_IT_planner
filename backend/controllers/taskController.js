@@ -1,28 +1,94 @@
 import Task from '../models/Task.js';
 import Project from '../models/Project.js';
+import Team from '../models/Team.js';
 import { Op } from 'sequelize';
+import whatsappService from '../services/whatsappService.js';
 
 export const createTask = async (req, res, next) => {
   try {
-    const { title, description, project, priority, dueDate, estimatedHours, milestone, tags } = req.body;
+    const { 
+      title, 
+      description, 
+      project, 
+      priority, 
+      dueDate, 
+      estimatedHours, 
+      milestone, 
+      tags,
+      mentionedMembers 
+    } = req.body;
 
+    // Validate required fields
+    if (!title || title.trim() === '') {
+      return res.status(400).json({
+        success: false,
+        message: 'Task title is required',
+      });
+    }
+
+    if (!project) {
+      return res.status(400).json({
+        success: false,
+        message: 'Project is required',
+      });
+    }
+
+    // Create task
     const task = await Task.create({
       title,
       description,
       project,
       assignee: req.user?.id || null,
-      priority,
+      priority: priority || 'medium',
       dueDate,
       estimatedHours,
       milestone,
       tags: tags || [],
+      mentionedMembers: mentionedMembers || [],
+      notificationsSent: []
     });
+
+    console.log(`✅ Task created: ${task.title} (ID: ${task.id})`);
+
+    // Fetch project details for notification
+    const projectDetails = await Project.findByPk(project);
+
+    // Prepare WhatsApp notifications if members are mentioned
+    let notifications = [];
+    if (mentionedMembers && mentionedMembers.length > 0) {
+      notifications = whatsappService.prepareNotifications(
+        task,
+        projectDetails,
+        mentionedMembers,
+        'created'
+      );
+
+      // Update task with notification records
+      const notificationRecords = notifications.map(n => ({
+        userId: n.userId,
+        sentAt: n.sentAt,
+        method: 'whatsapp'
+      }));
+
+      await task.update({
+        notificationsSent: notificationRecords
+      });
+
+      console.log(`📱 ${notifications.length} WhatsApp notifications prepared`);
+    }
 
     res.status(201).json({
       success: true,
+      message: 'Task created successfully',
       data: task,
+      notifications: notifications.map(n => ({
+        userId: n.userId,
+        name: n.name,
+        whatsappLink: n.link
+      }))
     });
   } catch (error) {
+    console.error('❌ Error creating task:', error);
     next(error);
   }
 };
@@ -80,13 +146,30 @@ export const getTaskById = async (req, res, next) => {
 
 export const updateTask = async (req, res, next) => {
   try {
-    const { title, description, status, priority, dueDate, actualHours, assignee, tags } = req.body;
+    const { 
+      title, 
+      description, 
+      status, 
+      priority, 
+      dueDate, 
+      actualHours, 
+      assignee, 
+      tags,
+      updateDetails,
+      notifyMembers 
+    } = req.body;
 
     let task = await Task.findByPk(req.params.id);
 
     if (!task) {
-      return res.status(404).json({ message: 'Task not found' });
+      return res.status(404).json({ 
+        success: false,
+        message: 'Task not found' 
+      });
     }
+
+    // Store previous status for notification
+    const previousStatus = task.status;
 
     // Update task fields
     const updateData = {};
@@ -107,11 +190,51 @@ export const updateTask = async (req, res, next) => {
 
     await task.update(updateData);
 
+    console.log(`✅ Task updated: ${task.title} (ID: ${task.id})`);
+
+    // Send progress notifications if requested and status changed
+    let notifications = [];
+    if (notifyMembers && status && status !== previousStatus && task.mentionedMembers?.length > 0) {
+      const projectDetails = await Project.findByPk(task.project);
+      
+      // Add update context to task for notification
+      task.previousStatus = previousStatus;
+      task.updateDetails = updateDetails;
+      
+      notifications = whatsappService.prepareNotifications(
+        task,
+        projectDetails,
+        task.mentionedMembers,
+        'updated'
+      );
+
+      // Update notification records
+      const existingNotifications = task.notificationsSent || [];
+      const newNotifications = notifications.map(n => ({
+        userId: n.userId,
+        sentAt: n.sentAt,
+        method: 'whatsapp'
+      }));
+
+      await task.update({
+        notificationsSent: [...existingNotifications, ...newNotifications]
+      });
+
+      console.log(`📱 ${notifications.length} WhatsApp progress notifications prepared`);
+    }
+
     res.status(200).json({
       success: true,
+      message: 'Task updated successfully',
       data: task,
+      notifications: notifications.map(n => ({
+        userId: n.userId,
+        name: n.name,
+        whatsappLink: n.link
+      }))
     });
   } catch (error) {
+    console.error('❌ Error updating task:', error);
     next(error);
   }
 };

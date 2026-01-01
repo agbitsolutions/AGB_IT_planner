@@ -94,15 +94,32 @@
     <div class="modal" id="addTeamModal">
         <div class="modal-content">
             <div class="modal-header">Create New Team</div>
-            <form onsubmit="createTeam(event)">
+            <form onsubmit="createTeam(event)" id="createTeamForm">
                 <div class="form-group">
-                    <label for="teamName">Team Name</label>
+                    <label for="teamName">Team Name *</label>
                     <input type="text" id="teamName" required placeholder="Enter team name">
                 </div>
                 <div class="form-group">
                     <label for="teamDescription">Description</label>
                     <textarea id="teamDescription" placeholder="Enter team description" rows="3"></textarea>
                 </div>
+                
+                <!-- Team Members Section -->
+                <div class="form-group">
+                    <label>Team Members</label>
+                    <div id="teamMembersContainer">
+                        <div class="team-member-row" data-index="0">
+                            <input type="text" class="member-name" placeholder="Member name" style="width: 45%">
+                            <input type="tel" class="member-whatsapp" placeholder="WhatsApp: +91XXXXXXXXXX" style="width: 45%">
+                            <button type="button" onclick="removeMember(0)" class="btn-remove" style="width: 8%">×</button>
+                        </div>
+                    </div>
+                    <button type="button" onclick="addMemberRow()" class="btn btn-secondary btn-sm mt-2">
+                        + Add Member
+                    </button>
+                    <small class="form-text text-muted">Add WhatsApp numbers to enable task notifications</small>
+                </div>
+                
                 <div class="modal-actions">
                     <button type="button" class="btn btn-secondary" onclick="closeModal('addTeamModal')">Cancel</button>
                     <button type="submit" class="btn btn-primary">Create Team</button>
