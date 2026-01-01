@@ -5,12 +5,12 @@ import upload from '../services/fileService.js';
 
 const router = express.Router();
 
-// All routes require authentication
-router.use(auth);
+// Public routes (for demo/testing)
+router.post('/', taskController.createTask); // Allow task creation without auth
+router.get('/', taskController.getAllTasks); // Allow viewing tasks
 
-// Task routes
-router.post('/', taskController.createTask);
-router.get('/', taskController.getAllTasks);
+// Protected routes
+router.use(auth);
 router.get('/:id', taskController.getTaskById);
 router.put('/:id', taskController.updateTask);
 router.patch('/:id/complete', taskController.completeTask);
