@@ -1,0 +1,74 @@
+[
+  {
+    "userId": "shubham1",
+    "name": "Shubham",
+    "whatsappNumber": "919049874780",
+    "link": "https://wa.me/919049874780?text=%F0%9F%94%94%20*Task%20CREATED*%0A%0A%F0%9F%93%8B%20*Test%20WhatsApp%20Notifications*%0A%0A%F0%9F%93%9D%20Testing%20task%20creation%20with%20WhatsApp%20notifications%20for%20all%20team%20members%0A%0A%F0%9F%8E%AF%20Project%3A%20*AGB%20IT*%0A%F0%9F%9F%A0%20Priority%3A%20*HIGH*%0A%F0%9F%93%85%20Due%3A%201%2F10%2F2026%0A%0A---%0A_Sent%20from%20AGB%20Planner_",
+    "message": "🔔 *Task CREATED*\n\n📋 *Test WhatsApp Notifications*\n\n📝 Testing task creation with WhatsApp notifications for all team members\n\n🎯 Project: *AGB IT*\n🟠 Priority: *HIGH*\n📅 Due: 1/10/2026\n\n---\n_Sent from AGB Planner_",
+    "sentAt": "2026-01-01T18:21:17.160Z",
+    "taskId": 7,
+    "taskTitle": "Test WhatsApp Notifications",
+    "projectName": "AGB IT",
+    "action": "created"
+  },
+  {
+    "userId": "mehul1",
+    "name": "Mehul",
+    "whatsappNumber": "918830451504",
+    "link": "https://wa.me/918830451504?text=%F0%9F%94%94%20*Task%20CREATED*%0A%0A%F0%9F%93%8B%20*Test%20WhatsApp%20Notifications*%0A%0A%F0%9F%93%9D%20Testing%20task%20creation%20with%20WhatsApp%20notifications%20for%20all%20team%20members%0A%0A%F0%9F%8E%AF%20Project%3A%20*AGB%20IT*%0A%F0%9F%9F%A0%20Priority%3A%20*HIGH*%0A%F0%9F%93%85%20Due%3A%201%2F10%2F2026%0A%0A---%0A_Sent%20from%20AGB%20Planner_",
+    "message": "🔔 *Task CREATED*\n\n📋 *Test WhatsApp Notifications*\n\n📝 Testing task creation with WhatsApp notifications for all team members\n\n🎯 Project: *AGB IT*\n🟠 Priority: *HIGH*\n📅 Due: 1/10/2026\n\n---\n_Sent from AGB Planner_",
+    "sentAt": "2026-01-01T18:21:17.160Z",
+    "taskId": 7,
+    "taskTitle": "Test WhatsApp Notifications",
+    "projectName": "AGB IT",
+    "action": "created"
+  },
+  {
+    "userId": "mahesh1",
+    "name": "Mahesh",
+    "whatsappNumber": "917887868580",
+    "link": "https://wa.me/917887868580?text=%F0%9F%94%94%20*Task%20CREATED*%0A%0A%F0%9F%93%8B%20*Test%20WhatsApp%20Notifications*%0A%0A%F0%9F%93%9D%20Testing%20task%20creation%20with%20WhatsApp%20notifications%20for%20all%20team%20members%0A%0A%F0%9F%8E%AF%20Project%3A%20*AGB%20IT*%0A%F0%9F%9F%A0%20Priority%3A%20*HIGH*%0A%F0%9F%93%85%20Due%3A%201%2F10%2F2026%0A%0A---%0A_Sent%20from%20AGB%20Planner_",
+    "message": "🔔 *Task CREATED*\n\n📋 *Test WhatsApp Notifications*\n\n📝 Testing task creation with WhatsApp notifications for all team members\n\n🎯 Project: *AGB IT*\n🟠 Priority: *HIGH*\n📅 Due: 1/10/2026\n\n---\n_Sent from AGB Planner_",
+    "sentAt": "2026-01-01T18:21:17.160Z",
+    "taskId": 7,
+    "taskTitle": "Test WhatsApp Notifications",
+    "projectName": "AGB IT",
+    "action": "created"
+  },
+  {
+    "userId": "shubham1",
+    "name": "Shubham",
+    "whatsappNumber": "919049874780",
+    "link": "https://wa.me/919049874780?text=%F0%9F%93%8A%20*TASK%20PROGRESS%20UPDATE*%0A%0A%F0%9F%93%8B%20*Test%20WhatsApp%20Notifications*%0A%F0%9F%8E%AF%20Project%3A%20*AGB%20IT*%0A%0AStatus%3A%20todo%20%E2%86%92%20*in-progress*%0A%0A---%0A_Sent%20from%20AGB%20Planner_",
+    "message": "📊 *TASK PROGRESS UPDATE*\n\n📋 *Test WhatsApp Notifications*\n🎯 Project: *AGB IT*\n\nStatus: todo → *in-progress*\n\n---\n_Sent from AGB Planner_",
+    "sentAt": "2026-01-01T18:24:17.789Z",
+    "taskId": 7,
+    "taskTitle": "Test WhatsApp Notifications",
+    "projectName": "AGB IT",
+    "action": "updated"
+  },
+  {
+    "userId": "mehul1",
+    "name": "Mehul",
+    "whatsappNumber": "918830451504",
+    "link": "https://wa.me/918830451504?text=%F0%9F%93%8A%20*TASK%20PROGRESS%20UPDATE*%0A%0A%F0%9F%93%8B%20*Test%20WhatsApp%20Notifications*%0A%F0%9F%8E%AF%20Project%3A%20*AGB%20IT*%0A%0AStatus%3A%20todo%20%E2%86%92%20*in-progress*%0A%0A---%0A_Sent%20from%20AGB%20Planner_",
+    "message": "📊 *TASK PROGRESS UPDATE*\n\n📋 *Test WhatsApp Notifications*\n🎯 Project: *AGB IT*\n\nStatus: todo → *in-progress*\n\n---\n_Sent from AGB Planner_",
+    "sentAt": "2026-01-01T18:24:17.789Z",
+    "taskId": 7,
+    "taskTitle": "Test WhatsApp Notifications",
+    "projectName": "AGB IT",
+    "action": "updated"
+  },
+  {
+    "userId": "mahesh1",
+    "name": "Mahesh",
+    "whatsappNumber": "917887868580",
+    "link": "https://wa.me/917887868580?text=%F0%9F%93%8A%20*TASK%20PROGRESS%20UPDATE*%0A%0A%F0%9F%93%8B%20*Test%20WhatsApp%20Notifications*%0A%F0%9F%8E%AF%20Project%3A%20*AGB%20IT*%0A%0AStatus%3A%20todo%20%E2%86%92%20*in-progress*%0A%0A---%0A_Sent%20from%20AGB%20Planner_",
+    "message": "📊 *TASK PROGRESS UPDATE*\n\n📋 *Test WhatsApp Notifications*\n🎯 Project: *AGB IT*\n\nStatus: todo → *in-progress*\n\n---\n_Sent from AGB Planner_",
+    "sentAt": "2026-01-01T18:24:17.789Z",
+    "taskId": 7,
+    "taskTitle": "Test WhatsApp Notifications",
+    "projectName": "AGB IT",
+    "action": "updated"
+  }
+]

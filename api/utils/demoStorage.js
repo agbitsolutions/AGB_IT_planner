@@ -9,50 +9,191 @@ const storage = {
     {
       _id: 'team_1',
       id: 1,
-      name: 'AGB Solutions',
-      description: 'Main development team',
-      owner: 'demo_user',
+      name: 'Shubham Team',
+      description: 'Team led by Shubham',
+      owner: 'shubham1',
       isPublic: true,
-      members: [],
+      members: [
+        {
+          userId: 'shubham1',
+          name: 'Shubham',
+          whatsappNumber: '919049874780',
+          role: 'Project Lead',
+          joinedAt: '2026-01-01'
+        }
+      ],
       projects: [],
-      createdAt: new Date('2025-12-29T10:15:09.474Z'),
-      updatedAt: new Date('2025-12-29T10:15:09.474Z'),
+      createdAt: new Date('2026-01-01'),
+      updatedAt: new Date('2026-01-01'),
     },
     {
       _id: 'team_2',
       id: 2,
-      name: 'Demo Team',
-      description: 'Demo team for testing features',
-      owner: 'demo_user',
+      name: 'Mehul Team',
+      description: 'Team led by Mehul',
+      owner: 'mehul1',
       isPublic: true,
-      members: [],
+      members: [
+        {
+          userId: 'mehul1',
+          name: 'Mehul',
+          whatsappNumber: '918830451504',
+          role: 'Technical Lead',
+          joinedAt: '2026-01-01'
+        }
+      ],
       projects: [],
-      createdAt: new Date(),
-      updatedAt: new Date(),
+      createdAt: new Date('2026-01-01'),
+      updatedAt: new Date('2026-01-01'),
+    },
+    {
+      _id: 'team_3',
+      id: 3,
+      name: 'Mahesh Team',
+      description: 'Team led by Mahesh',
+      owner: 'mahesh1',
+      isPublic: true,
+      members: [
+        {
+          userId: 'mahesh1',
+          name: 'Mahesh',
+          whatsappNumber: '917887868580',
+          role: 'Development Lead',
+          joinedAt: '2026-01-01'
+        }
+      ],
+      projects: [],
+      createdAt: new Date('2026-01-01'),
+      updatedAt: new Date('2026-01-01'),
     }
   ],
   projects: [
     {
       _id: 'project_1',
       id: 1,
-      name: 'AGB Planner',
-      description: 'Multi-project planning application',
-      team: 'team_1',
+      name: 'AGB IT',
+      description: 'This is a parent site',
+      team: 1,
+      teamObj: { id: 1, name: 'Shubham Team' },
       status: 'active',
       priority: 'high',
-      startDate: new Date('2025-12-01'),
-      endDate: new Date('2025-12-31'),
-      createdAt: new Date('2025-12-29T10:15:09.474Z'),
-      updatedAt: new Date('2025-12-29T10:15:09.474Z'),
+      startDate: new Date('2026-01-01'),
+      endDate: new Date('2026-06-30'),
+      owner: 'shubham1',
+      isPublic: true,
+      createdAt: new Date('2026-01-01'),
+      updatedAt: new Date('2026-01-01'),
+    },
+    {
+      _id: 'project_2',
+      id: 2,
+      name: 'Market Mantra',
+      description: 'Automated futuristic algo trading',
+      team: 2,
+      teamObj: { id: 2, name: 'Mehul Team' },
+      status: 'active',
+      priority: 'high',
+      startDate: new Date('2026-01-01'),
+      endDate: new Date('2026-12-31'),
+      owner: 'mehul1',
+      isPublic: true,
+      createdAt: new Date('2026-01-01'),
+      updatedAt: new Date('2026-01-01'),
+    },
+    {
+      _id: 'project_3',
+      id: 3,
+      name: 'Rathi',
+      description: 'Futuristic, private but local first travel experience. Book a rathi travel Guide',
+      team: 3,
+      teamObj: { id: 3, name: 'Mahesh Team' },
+      status: 'active',
+      priority: 'medium',
+      startDate: new Date('2026-01-01'),
+      endDate: new Date('2026-09-30'),
+      owner: 'mahesh1',
+      isPublic: true,
+      createdAt: new Date('2026-01-01'),
+      updatedAt: new Date('2026-01-01'),
     }
   ],
-  tasks: [],
+  tasks: [
+    {
+      _id: 'task_1',
+      id: 1,
+      title: 'Setup project architecture',
+      description: 'Define the overall architecture for AGB IT parent site including microservices structure',
+      project: 1,
+      status: 'in-progress',
+      priority: 'high',
+      dueDate: new Date('2026-01-15'),
+      tags: ['architecture', 'planning'],
+      mentionedMembers: [
+        { userId: 'shubham1', name: 'Shubham', whatsappNumber: '919049874780' },
+        { userId: 'mehul1', name: 'Mehul', whatsappNumber: '918830451504' }
+      ],
+      notificationsSent: [],
+      attachments: [],
+      comments: [],
+      estimatedHours: 0,
+      actualHours: 0,
+      isCompleted: false,
+      createdAt: new Date('2026-01-01'),
+      updatedAt: new Date('2026-01-01'),
+    },
+    {
+      _id: 'task_2',
+      id: 2,
+      title: 'Implement trading algorithm',
+      description: 'Develop the core trading algorithm with ML-based predictions',
+      project: 2,
+      status: 'todo',
+      priority: 'high',
+      dueDate: new Date('2026-01-20'),
+      tags: ['algorithm', 'ml', 'trading'],
+      mentionedMembers: [
+        { userId: 'mehul1', name: 'Mehul', whatsappNumber: '918830451504' },
+        { userId: 'shubham1', name: 'Shubham', whatsappNumber: '919049874780' }
+      ],
+      notificationsSent: [],
+      attachments: [],
+      comments: [],
+      estimatedHours: 0,
+      actualHours: 0,
+      isCompleted: false,
+      createdAt: new Date('2026-01-01'),
+      updatedAt: new Date('2026-01-01'),
+    },
+    {
+      _id: 'task_3',
+      id: 3,
+      title: 'Design travel guide booking interface',
+      description: 'Create a user-friendly interface for booking local travel guides with real-time availability',
+      project: 3,
+      status: 'todo',
+      priority: 'medium',
+      dueDate: new Date('2026-01-25'),
+      tags: ['ui', 'design', 'booking'],
+      mentionedMembers: [
+        { userId: 'mahesh1', name: 'Mahesh', whatsappNumber: '917887868580' },
+        { userId: 'shubham1', name: 'Shubham', whatsappNumber: '919049874780' }
+      ],
+      notificationsSent: [],
+      attachments: [],
+      comments: [],
+      estimatedHours: 0,
+      actualHours: 0,
+      isCompleted: false,
+      createdAt: new Date('2026-01-01'),
+      updatedAt: new Date('2026-01-01'),
+    }
+  ],
   milestones: [],
 };
 
-let teamId = 3;  // Start from 3 since we have 2 pre-populated
-let projectId = 2;
-let taskId = 1;
+let teamId = 4;  // Start from 4 (we have 3 teams)
+let projectId = 4; // Start from 4 (we have 3 projects)
+let taskId = 4; // Start from 4 (we have 3 tasks)
 let milestoneId = 1;
 
 export const demoStorage = {

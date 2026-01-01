@@ -176,6 +176,106 @@ app.get('/api/milestones', (req, res) => {
   }
 });
 
+// Tasks API
+app.get('/api/tasks', (req, res) => {
+  try {
+    const tasks = demoStorage.getTasks();
+    res.json({
+      success: true,
+      count: tasks.length,
+      data: tasks
+    });
+  } catch (error) {
+    console.error('Error fetching tasks:', error);
+    res.status(500).json({ success: false, message: error.message });
+  }
+});
+
+app.post('/api/tasks', (req, res) => {
+  try {
+    const task = demoStorage.createTask(req.body);
+    
+    // Generate WhatsApp notifications
+    const notifications = [];
+    if (task.mentionedMembers && task.mentionedMembers.length > 0) {
+      const project = demoStorage.getProjectById(task.project);
+      for (const member of task.mentionedMembers) {
+        if (member.whatsappNumber) {
+          const message = `🔔 *Task CREATED*\n\n📋 *${task.title}*\n\n📝 ${task.description}\n\n🎯 Project: *${project?.name || 'Unknown'}*\n🟠 Priority: *${task.priority.toUpperCase()}*\n📅 Due: ${new Date(task.dueDate).toLocaleDateString()}\n\n---\n_Sent from AGB Planner_`;
+          const link = `https://wa.me/${member.whatsappNumber}?text=${encodeURIComponent(message)}`;
+          notifications.push({
+            userId: member.userId,
+            name: member.name,
+            whatsappLink: link
+          });
+        }
+      }
+    }
+    
+    res.status(201).json({
+      success: true,
+      message: 'Task created successfully',
+      data: task,
+      notifications
+    });
+  } catch (error) {
+    console.error('Error creating task:', error);
+    res.status(500).json({ success: false, message: error.message });
+  }
+});
+
+app.get('/api/tasks/:id', (req, res) => {
+  try {
+    const task = demoStorage.getTaskById(req.params.id);
+    if (!task) {
+      return res.status(404).json({ success: false, message: 'Task not found' });
+    }
+    res.json({
+      success: true,
+      data: task
+    });
+  } catch (error) {
+    console.error('Error fetching task:', error);
+    res.status(500).json({ success: false, message: error.message });
+  }
+});
+
+app.put('/api/tasks/:id', (req, res) => {
+  try {
+    const task = demoStorage.updateTask(req.params.id, req.body);
+    if (!task) {
+      return res.status(404).json({ success: false, message: 'Task not found' });
+    }
+    
+    // Generate WhatsApp notifications for status updates
+    const notifications = [];
+    if (req.body.notifyMembers && req.body.status && task.mentionedMembers) {
+      const project = demoStorage.getProjectById(task.project);
+      for (const member of task.mentionedMembers) {
+        if (member.whatsappNumber) {
+          const message = `📊 *TASK PROGRESS UPDATE*\n\n📋 *${task.title}*\n🎯 Project: *${project?.name || 'Unknown'}*\n\nStatus: ${task.previousStatus || 'todo'} → *${req.body.status}*\n\n---\n_Sent from AGB Planner_`;
+          const link = `https://wa.me/${member.whatsappNumber}?text=${encodeURIComponent(message)}`;
+          notifications.push({
+            userId: member.userId,
+            name: member.name,
+            whatsappLink: link
+          });
+        }
+      }
+    }
+    
+    res.json({
+      success: true,
+      message: 'Task updated successfully',
+      data: task,
+      notifications
+    });
+  } catch (error) {
+    console.error('Error updating task:', error);
+    res.status(500).json({ success: false, message: error.message });
+  }
+});
+
 // Health check
 app.get('/api/health', (req, res) => {
   res.json({
